@@ -17,4 +17,4 @@ Then run this and the bot will be online
 node ./index.js
 ```
 # Feedback
-Any recommendations or feedback is welcome, you can contact me via my email: <a href='mailto:hoangtam3062002@gmail.com'>hoangtam3062002@gmail.com </a>
+Any recommendations or feedback is welcome, you can contact me via my email [hoangtam3062002@gmail.com](mailto:hoangtam3062002@gmail.com)
