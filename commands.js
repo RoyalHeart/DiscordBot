@@ -13,6 +13,8 @@ module.exports = async function (msg) {
   let tokens = msg.content.split(" ");
   let command = tokens.shift(); // remove first token from tokens
   if (command.charAt(0) === "!") {
-    commands[command.substring(1)](msg, tokens);
+    if (command.substring(1) in commands) {
+      commands[command.substring(1)](msg, tokens);
+    }
   }
 };
