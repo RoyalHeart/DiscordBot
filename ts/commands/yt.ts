@@ -1,31 +1,52 @@
 import axios from 'axios';
+import {Message} from 'discord.js';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 const youtubeApiKey = process.env.YOUTUBE_API_KEY;
-export default async function (
-  msg: {channel: {send: (arg0: string) => void}},
-  tokens: any[]
-) {
+export default async function (msg: Message, tokens: string[]) {
   if (tokens.length > 0) {
-    let searchQuery = tokens.join('%20');
-    let search_query = `https://youtube.googleapis.com/youtube/v3/search?q=${searchQuery}&key=${youtubeApiKey}`;
-    let data = (
-      await axios.get(search_query, {
-        headers: {
-          'Accept-Encoding': 'application/json',
-        },
-      })
-    ).data;
-    console.log(data);
-
-    let results = data['items'];
-    for (let i = 0; i < 3; i++) {
-      let videoId = results[i]['id']['videoId'];
-      let videoUrl = `https://youtube.com/watch?v=${videoId}`;
-      msg.channel.send(videoUrl);
+    const urls = getYoutubeVideoUrls(tokens.join(' '), 3);
+    for (let url in urls) {
+      msg.channel.send(url);
     }
   } else {
-    msg.channel.send('please input some arguments');
+    msg.channel.send('> Please input some arguments');
   }
+}
+
+async function getYoutubeVideoUrls(title: string, numbers: number) {
+  let videoInfos = await getYoutubeVideoInfos(title);
+  let videoUrls = [];
+  for (let index = 0; index < numbers; index++) {
+    const videoId = videoInfos[index]['id']['videoId'];
+    videoUrls.push(videoId);
+  }
+  return videoUrls;
+}
+export async function getYoutubeVideoUrl(title: string) {
+  let videoInfos = await getYoutubeVideoInfos(title);
+  let videoId = videoInfos[0]['id']['videoId'];
+  let videoUrl = `https://youtube.com/watch?v=${videoId}`;
+  return videoUrl;
+}
+async function getYoutubeVideoInfos(title: string): Promise<any> {
+  let tokens = title.split(' ');
+  let searchQuery = tokens.join('%20');
+  let search_query = `https://youtube.googleapis.com/youtube/v3/search?q=${searchQuery}&key=${youtubeApiKey}`;
+  let data = await getAxiosData(search_query);
+  // console.log(data);
+  let results = data['items'];
+  return results;
+}
+
+async function getAxiosData(query: string): Promise<any> {
+  let data = (
+    await axios.get(query, {
+      headers: {
+        'Accept-Encoding': 'application/json',
+      },
+    })
+  ).data;
+  return data;
 }

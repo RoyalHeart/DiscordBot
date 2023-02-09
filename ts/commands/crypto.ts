@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {Message} from 'discord.js';
 import * as dotenv from 'dotenv';
 dotenv.config();
 const coinMarketCapApiKey = process.env.COIN_MARKET_CAP_API_KEY;
@@ -9,16 +10,12 @@ const ETHER_ID = 1027;
 const LUNC_ID = 4172;
 const TRX_ID = 1958;
 const BTC_ID = 1;
-export default async function (
-  msg: {channel: {send: (arg0: string) => void}},
-  tokens: any[]
-) {
-  const input_data = tokens.join('');
-  await getLatest10Crypto(msg, tokens);
-  setInterval(getLatest10Crypto, 120 * 1000);
+export default async function (msg: Message, tokens: string[]) {
+  const message = (await getLatest10Crypto()) as string;
+  msg.channel.send(message);
 }
 
-async function getLatest10Crypto(msg: {channel: any}, tokens: any[]) {
+async function getLatest10Crypto() {
   try {
     const response = await axios.get(COIN_MARKET_CAP_URL, {
       headers: {
@@ -39,7 +36,7 @@ async function getLatest10Crypto(msg: {channel: any}, tokens: any[]) {
       }
     }
     console.log(message);
-    msg.channel.send(message);
+    return message;
   } catch (error) {
     console.log(error);
   }

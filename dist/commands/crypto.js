@@ -9,11 +9,10 @@ const LUNC_ID = 4172;
 const TRX_ID = 1958;
 const BTC_ID = 1;
 export default async function (msg, tokens) {
-    const input_data = tokens.join('');
-    await getLatest10Crypto(msg, tokens);
-    setInterval(getLatest10Crypto, 120 * 1000);
+    const message = (await getLatest10Crypto());
+    msg.channel.send(message);
 }
-async function getLatest10Crypto(msg, tokens) {
+async function getLatest10Crypto() {
     try {
         const response = await axios.get(COIN_MARKET_CAP_URL, {
             headers: {
@@ -33,13 +32,13 @@ async function getLatest10Crypto(msg, tokens) {
             }
         }
         console.log(message);
-        msg.channel.send(message);
+        return message;
     }
     catch (error) {
         console.log(error);
     }
 }
-async function test() {
+export async function test() {
     try {
         let response = await axios.get(COIN_MARKET_CAP_SANDBOX_URL, {
             headers: {
@@ -53,5 +52,4 @@ async function test() {
         console.log(error);
     }
 }
-test();
 //# sourceMappingURL=crypto.js.map

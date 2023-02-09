@@ -1,5 +1,3 @@
-export default function (msg: {
-    channel: {
-        send: (arg0: string) => void;
-    };
-}, tokens: any): void;
+import { ChatInputCommandInteraction, Message } from 'discord.js';
+export default function (msg: Message, tokens: any): void;
+export declare function help(interaction: ChatInputCommandInteraction): void;

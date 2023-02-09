@@ -1,19 +1,16 @@
 import axios from 'axios';
 export default async function (msg, tokens) {
-    if (tokens.length === 0) {
-        let random = Math.floor(Math.random() * quoteUrls.length);
-        let quoteUrl = quoteUrls[random];
-        let randomQuote = await getRandomQuote(quoteUrl);
-        msg.channel.send(randomQuote);
-    }
-    // TODO: for searching quote by authors
-    else {
-        let searchString = tokens.slice(1, tokens.length);
-    }
+    msg.channel.send(await getQuote(tokens));
 }
 let quoteUrl = 'https://type.fit/api/quotes';
 let quoteUrl2 = 'https://api.quotable.io/random';
 let quoteUrls = [quoteUrl, quoteUrl2];
+async function getQuote(tokens) {
+    let random = Math.floor(Math.random() * quoteUrls.length);
+    let quoteUrl = quoteUrls[random];
+    let randomQuote = await getRandomQuote(quoteUrl);
+    return randomQuote;
+}
 async function getRandomQuote(url) {
     let data = (await axios.get(url, { headers: { 'Content-Type': 'application/json' } })).data;
     let quote = '';
@@ -40,5 +37,4 @@ async function test() {
     console.log(quote);
     console.log(quote2);
 }
-// test();
 //# sourceMappingURL=quote.js.map

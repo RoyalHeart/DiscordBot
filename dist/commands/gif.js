@@ -3,8 +3,17 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 const tenorApiKey = process.env.TENOR_API_KEY;
 export default async function (msg, tokens) {
+    msg.channel.send(await getGif(tokens));
+}
+export async function gif(interaction) {
+    var token = interaction.options.get('category')?.value?.toString();
+    var tokens = token.split(' ');
+    interaction.reply(await getGif(tokens));
+}
+async function getGif(tokens) {
     let searchUrl = '';
-    if (tokens.length === 0) {
+    const haveArgs = tokens.length !== 0;
+    if (!haveArgs) {
         // no args
         const lmt = 10;
         searchUrl = `https://tenor.googleapis.com/v2/featured?&key=${tenorApiKey}&limit=${lmt}`;
@@ -24,11 +33,10 @@ export default async function (msg, tokens) {
     const response = (await axios.get(searchUrl, {
         headers: { 'Content-Type': 'application/json' },
     })).data;
-    console.log(response);
     const results = await response.results;
     const random = Math.floor(Math.random() * results.length);
     const randomGif = results[random];
     const gifUrl = randomGif.url;
-    msg.channel.send(gifUrl);
+    return gifUrl;
 }
 //# sourceMappingURL=gif.js.map

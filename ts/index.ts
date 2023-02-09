@@ -1,3 +1,3 @@
 import deploy from './deploy.js';
 
-deploy();
+await deploy();

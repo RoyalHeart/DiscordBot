@@ -1,5 +1,3 @@
-export default function (msg: {
-    channel: {
-        send: (arg0: string) => void;
-    };
-}, tokens: any[]): Promise<void>;
+import { Message } from 'discord.js';
+export default function (msg: Message, tokens: string[]): Promise<void>;
+export declare function test(): Promise<void>;
