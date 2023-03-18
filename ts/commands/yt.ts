@@ -26,8 +26,17 @@ async function getYoutubeVideoUrls(title: string, numbers: number) {
 }
 export async function getYoutubeVideoUrl(title: string) {
   let videoInfos = await getYoutubeVideoInfos(title);
-  let videoId = videoInfos[0]['id']['videoId'];
-  let videoUrl = `https://youtube.com/watch?v=${videoId}`;
+  console.log(videoInfos);
+  let index = 0;
+  let videoUrl: string = '';
+  while (videoUrl == '') {
+    let videoId = videoInfos[index]['id']['videoId'];
+    if (videoId != null) {
+      videoUrl = `https://youtube.com/watch?v=${videoId}`;
+      break;
+    }
+    index++;
+  }
   return videoUrl;
 }
 async function getYoutubeVideoInfos(title: string): Promise<any> {
