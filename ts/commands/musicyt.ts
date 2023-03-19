@@ -8,6 +8,8 @@ import {
 } from '@discordjs/voice';
 import {
   BaseGuildTextChannel,
+  GuildTextBasedChannel,
+  ChannelType,
   ChatInputCommandInteraction,
   Guild,
   GuildMember,
@@ -112,7 +114,7 @@ async function getNextRelatedSong(song: Song): Promise<Song> {
 }
 let song: Song;
 export default async function playyt(interaction: ChatInputCommandInteraction) {
-  if (!(interaction.channel instanceof BaseGuildTextChannel)) {
+  if (!(interaction.channel?.type === ChannelType.GuildText)) {
     return interaction.reply({
       content: 'You are not in a channel!',
       ephemeral: true,
@@ -134,6 +136,7 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
     });
   }
   await interaction.deferReply();
+  const channel = interaction.channel;
 
   const query = interaction.options.get('query')?.value as string;
   console.log('> Query:', query);
@@ -150,14 +153,29 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
         adapterCreator: interaction.member.guild.voiceAdapterCreator as any,
         selfMute: false,
       });
-      connection.on('stateChange', (old_state, new_state) => {
-        if (
-          old_state.status === VoiceConnectionStatus.Ready &&
-          new_state.status === VoiceConnectionStatus.Connecting
-        ) {
-          connection.configureNetworking();
-        }
-      });
+      // const networkStateChangeHandler = (
+      //   oldNetworkState: any,
+      //   newNetworkState: any
+      // ) => {
+      //   const newUdp = Reflect.get(newNetworkState, 'udp');
+      //   clearInterval(newUdp?.keepAliveInterval);
+      // };
+
+      // connection.on('stateChange', (oldState, newState) => {
+      //   const oldNetworking = Reflect.get(oldState, 'networking');
+      //   const newNetworking = Reflect.get(newState, 'networking');
+
+      //   oldNetworking?.off('stateChange', networkStateChangeHandler);
+      //   newNetworking?.on('stateChange', networkStateChangeHandler);
+      // });
+      // connection.on('stateChange', (old_state, new_state) => {
+      //   if (
+      //     old_state.status === VoiceConnectionStatus.Ready &&
+      //     new_state.status === VoiceConnectionStatus.Connecting
+      //   ) {
+      //     connection.configureNetworking();
+      //   }
+      // });
       const queueContruct: ServerQueue = {
         textChannel: interaction.channel,
         voiceChannel: voiceChannel,
@@ -191,24 +209,14 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
     return interaction.channel.send(`> Add **${song.title}** to the queue!`);
   }
 
-  player.on('stateChange', (oldState, newState) => {
-    if (
-      oldState.status == AudioPlayerStatus.Playing &&
-      newState.status == AudioPlayerStatus.AutoPaused
-    ) {
-      console.log('> AutoPause start playing again');
-      player.play(song.resource);
-    }
-  });
   player.on(AudioPlayerStatus.Buffering, async (e: any) => {
-    // const title = await e.resource['metadata']['title'];
     console.log('> Loading', song.title);
   });
   player.on(AudioPlayerStatus.Playing, (e: any) => {
-    // const title = e.resource['metadata']['title'];
-    console.log('> Playing', song.title);
+    console.log('> Playing', serverQueue.songs[0].title);
   });
   player.on(AudioPlayerStatus.AutoPaused, (e) => {
+    player.play(serverQueue.songs[0].resource);
     console.log('> Auto pause');
   });
   player.on(AudioPlayerStatus.Idle, async (e) => {
@@ -218,11 +226,8 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
     if (serverQueue.songs.length == 0) {
       song = await nextRelatedSong;
       serverQueue.songs.push(song);
-      await interaction.channel?.send({
-        content: `> Queue is empty`,
-      });
       player.play(song.resource);
-      await interaction.channel?.send({
+      await channel.send({
         content: `> Playing related song **${song.title}**`,
       });
     } else {
@@ -230,7 +235,7 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
       song = serverQueue.songs[0];
       console.log('> Next song title' + song.title);
       if (song) {
-        await interaction.channel?.send({
+        await channel.send({
           content: `> Playing **${song.title}**`,
         });
         player.play(song.resource);
@@ -240,6 +245,12 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
 }
 
 export async function skipyt(interaction: ChatInputCommandInteraction) {
+  if (!(interaction.channel?.type === ChannelType.GuildText)) {
+    return interaction.reply({
+      content: 'You are not in a channel!',
+      ephemeral: true,
+    });
+  }
   if (!(interaction.guild instanceof Guild)) {
     return interaction.reply({
       content: 'You are not in a guild channel!',
@@ -259,21 +270,28 @@ export async function skipyt(interaction: ChatInputCommandInteraction) {
   setTimeout(async () => {
     await interaction.deleteReply();
   }, 2000);
+  const channel = await interaction.channel;
   serverQueue.songs.shift();
   const nextSong = serverQueue.songs[0];
   if (nextSong) {
-    interaction.channel?.send({
-      content: `> Skip to ${nextSong.title}`,
+    channel.send({
+      content: `> Skip to **${nextSong.title}**`,
     });
     return player.play(nextSong.resource);
   } else {
-    interaction.channel?.send({
+    channel.send({
       content: `> No next song`,
     });
   }
 }
 
 export async function pauseyt(interaction: ChatInputCommandInteraction) {
+  if (!(interaction.channel?.type === ChannelType.GuildText)) {
+    return interaction.reply({
+      content: 'You are not in a channel!',
+      ephemeral: true,
+    });
+  }
   if (!(interaction.guild instanceof Guild)) {
     return interaction.reply({
       content: 'You are not in a guild channel!',
@@ -289,19 +307,26 @@ export async function pauseyt(interaction: ChatInputCommandInteraction) {
       ephemeral: true,
     });
   }
+  const channel = interaction.channel;
   player.pause();
   interaction.reply({content: `> Pausing`});
   setTimeout(async () => {
     await interaction.deleteReply();
   }, 2000);
-  interaction.channel?.send({content: `> Pausing`});
+  channel.send(`> Pausing`);
 }
 
 export async function resumeyt(interaction: ChatInputCommandInteraction) {
+  if (!(interaction.channel?.type === ChannelType.GuildText)) {
+    return interaction.reply({
+      content: 'You are not in a channel!',
+      ephemeral: true,
+    });
+  }
   player.unpause();
   interaction.reply({content: `> Resume`});
   setTimeout(async () => {
     await interaction.deleteReply();
   }, 2000);
-  interaction.channel?.send({content: `> Resume`});
+  interaction.channel.send({content: `> Resume`});
 }

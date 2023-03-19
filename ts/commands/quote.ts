@@ -1,7 +1,9 @@
 import axios from 'axios';
-import {Message} from 'discord.js';
+import {ChannelType, Message} from 'discord.js';
 export default async function (msg: Message, tokens: string[]) {
-  msg.channel.send(await getQuote(tokens));
+  if (msg.channel.type === ChannelType.GuildText) {
+    msg.channel.send(await getQuote(tokens));
+  }
 }
 
 let quoteUrl = 'https://type.fit/api/quotes';

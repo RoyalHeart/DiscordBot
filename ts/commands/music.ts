@@ -21,8 +21,8 @@ export async function test(interaction: ChatInputCommandInteraction) {
   info.videoDetails.title;
 }
 let havePlayer: boolean = false;
+let player: Player;
 export default async function (interaction: ChatInputCommandInteraction) {
-  let player: Player;
   if (!havePlayer) {
     player = getPlayer();
     havePlayer = true;
@@ -52,7 +52,6 @@ export default async function (interaction: ChatInputCommandInteraction) {
       .catch(() => {});
     if (!searchResult || !searchResult.tracks.length)
       return void interaction.followUp({content: 'No results were found!'});
-
     try {
       if (!queue.connection)
         await queue.connect(interaction.member.voice.channel);
@@ -62,7 +61,6 @@ export default async function (interaction: ChatInputCommandInteraction) {
         content: 'Could not join your voice channel!',
       });
     }
-
     await interaction.followUp({
       content: `⏱ | Loading your ${
         searchResult.playlist ? 'playlist' : 'track'

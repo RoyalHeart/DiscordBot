@@ -1,17 +1,28 @@
 import axios from 'axios';
-import {Message} from 'discord.js';
+import {ChannelType, Message, TextChannel} from 'discord.js';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 const youtubeApiKey = process.env.YOUTUBE_API_KEY;
+function getTextChannel(message: Message): TextChannel | null {
+  if (message.channel instanceof TextChannel) {
+    return message.channel;
+  }
+  return null;
+}
 export default async function (msg: Message, tokens: string[]) {
   if (tokens.length > 0) {
     const urls = getYoutubeVideoUrls(tokens.join(' '), 3);
     for (let url in urls) {
-      msg.channel.send(url);
+      let channel = getTextChannel(msg);
+      if (channel != null) {
+        channel.send(url);
+      }
     }
   } else {
-    msg.channel.send('> Please input some arguments');
+    if (msg.channel.type === ChannelType.GuildText) {
+      msg.channel.send('> Please input some arguments');
+    }
   }
 }
 

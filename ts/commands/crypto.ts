@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {Message} from 'discord.js';
+import {ChannelType, Message} from 'discord.js';
 import * as dotenv from 'dotenv';
 dotenv.config();
 const coinMarketCapApiKey = process.env.COIN_MARKET_CAP_API_KEY;
@@ -12,7 +12,9 @@ const TRX_ID = 1958;
 const BTC_ID = 1;
 export default async function (msg: Message, tokens: string[]) {
   const message = (await getLatest10Crypto()) as string;
-  msg.channel.send(message);
+  if (msg.channel.type === ChannelType.GuildText) {
+    msg.channel.send(message);
+  }
 }
 
 async function getLatest10Crypto() {

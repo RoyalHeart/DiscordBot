@@ -1,4 +1,4 @@
-import {ChatInputCommandInteraction, Message} from 'discord.js';
+import {ChannelType, ChatInputCommandInteraction, Message} from 'discord.js';
 
 const allCommands =
   'There are currently these functions: \n' +
@@ -10,7 +10,9 @@ const allCommands =
   '!weather show the weather status \n ' +
   '!yt <args> give a youtube search link of the args \n';
 export default function (msg: Message, tokens: any) {
-  msg.channel.send(allCommands);
+  if (msg.channel.type === ChannelType.GuildText) {
+    msg.channel.send(allCommands);
+  }
 }
 export function help(interaction: ChatInputCommandInteraction) {
   interaction.reply(allCommands);

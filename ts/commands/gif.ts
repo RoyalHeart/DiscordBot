@@ -1,10 +1,12 @@
 import axios from 'axios';
-import {ChatInputCommandInteraction, Message} from 'discord.js';
+import {ChannelType, ChatInputCommandInteraction, Message} from 'discord.js';
 import * as dotenv from 'dotenv';
 dotenv.config();
 const tenorApiKey = process.env.TENOR_API_KEY;
 export default async function (msg: Message, tokens: string[]) {
-  msg.channel.send(await getGif(tokens));
+  if (msg.channel.type === ChannelType.GuildText) {
+    msg.channel.send(await getGif(tokens));
+  }
 }
 export async function gif(interaction: ChatInputCommandInteraction) {
   var token = interaction.options.get('category')?.value?.toString();

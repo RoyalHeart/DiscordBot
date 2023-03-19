@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/opus": "^0.8.0",
-    "@discordjs/voice": "^0.14.0",
+    "@discordjs/voice": "^0.15.0",
     "axios": "^1.2.6",
     "discord-player": "^5.4.0",
     "discord-ytdl-core": "^5.0.4",
