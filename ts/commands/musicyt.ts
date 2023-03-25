@@ -309,8 +309,8 @@ export async function skipyt(interaction: ChatInputCommandInteraction) {
   setTimeout(async () => {
     await interaction.deleteReply();
   }, 2000);
-  const channel = await interaction.channel;
-  serverQueue.songs.shift();
+  const channel = interaction.channel;
+  const song = serverQueue.songs.shift();
   const nextSong = serverQueue.songs[0];
   if (nextSong) {
     channel.send({
@@ -318,9 +318,18 @@ export async function skipyt(interaction: ChatInputCommandInteraction) {
     });
     return player.play(nextSong.resource);
   } else {
-    channel.send({
-      content: `> No next song`,
-    });
+    if (song) {
+      const nextSong = await getNextRelatedSong(song);
+      serverQueue.songs.push(nextSong);
+      channel.send({
+        content: `> Skip to next related song **${nextSong.title}**`,
+      });
+      player.play(nextSong.resource);
+    } else {
+      channel.send({
+        content: `> No related song`,
+      });
+    }
   }
 }
 
