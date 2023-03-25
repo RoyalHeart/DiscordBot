@@ -93,6 +93,11 @@ const playyt = {
     },
   ],
 };
+const loopyt = {
+  name: 'loopyt',
+  description: 'Loop current song',
+  type: 1,
+};
 const skipyt = {
   name: 'skipyt',
   description: 'Skip to the next song',

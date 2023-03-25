@@ -51,6 +51,7 @@ interface ServerQueue {
   songs: Array<Song>;
   volume: 5;
   playing: true;
+  isLoop: boolean | null;
 }
 
 let serverQueue: ServerQueue;
@@ -183,6 +184,7 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
         songs: [song],
         volume: 5,
         playing: true,
+        isLoop: false,
       };
       serverQueue = queueContruct;
       queue.set(interaction.guild.id, queueContruct);
@@ -221,17 +223,22 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
   });
   player.on(AudioPlayerStatus.Idle, async (e) => {
     console.log('> Idle');
-    console.log('> ServerQueue ', serverQueue.songs);
-    let nextRelatedSong = getNextRelatedSong(serverQueue.songs.shift()!);
+    let currentSong = serverQueue.songs.shift()!;
+    let nextRelatedSong = getNextRelatedSong(currentSong);
+    if (serverQueue.isLoop) {
+      song = createSong(currentSong.songInfo);
+      serverQueue.songs.push(song);
+      player.play(song.resource);
+    }
     if (serverQueue.songs.length == 0) {
       song = await nextRelatedSong;
       serverQueue.songs.push(song);
-      player.play(song.resource);
+      console.log('> Song url:', song.url);
       await channel.send({
         content: `> Playing related song **${song.title}**`,
       });
+      player.play(song.resource);
     } else {
-      console.log('> ServerQueue ', serverQueue.songs);
       song = serverQueue.songs[0];
       console.log('> Next song title' + song.title);
       if (song) {
@@ -244,6 +251,38 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
   });
 }
 
+export async function loopyt(interaction: ChatInputCommandInteraction) {
+  if (!(interaction.channel?.type === ChannelType.GuildText)) {
+    return interaction.reply({
+      content: 'You are not in a channel!',
+      ephemeral: true,
+    });
+  }
+  if (!(interaction.guild instanceof Guild)) {
+    return interaction.reply({
+      content: 'You are not in a guild channel!',
+      ephemeral: true,
+    });
+  }
+  if (
+    !(interaction.member instanceof GuildMember) ||
+    !interaction.member.voice.channel
+  ) {
+    return interaction.reply({
+      content: 'You are not in a voice channel!',
+      ephemeral: true,
+    });
+  }
+  if (serverQueue.isLoop) {
+    interaction.reply({content: '> Stop looping current song'});
+  } else {
+    interaction.reply({content: '> Looping current song'});
+  }
+  setTimeout(async () => {
+    await interaction.deleteReply();
+  }, 2000);
+  serverQueue.isLoop = !serverQueue.isLoop;
+}
 export async function skipyt(interaction: ChatInputCommandInteraction) {
   if (!(interaction.channel?.type === ChannelType.GuildText)) {
     return interaction.reply({

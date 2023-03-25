@@ -13,6 +13,7 @@ import {
   skipyt,
   pauseyt,
   resumeyt,
+  loopyt,
 } from './commands/musicyt.js';
 import quote from './commands/quote.js';
 import weather from './commands/weather.js';
@@ -29,6 +30,7 @@ const commands = {
   stop,
   skip,
   playyt,
+  loopyt,
   skipyt,
   pauseyt,
   resumeyt,
