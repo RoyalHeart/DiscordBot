@@ -208,7 +208,7 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
   }
 
   player.on(AudioPlayerStatus.Buffering, async (e: any) => {
-    console.log('> Loading', song.title);
+    console.log('> Loading', serverQueue.songs[0].title);
   });
   player.on(AudioPlayerStatus.Playing, (e: any) => {
     console.log('> Playing', serverQueue.songs[0].title);
