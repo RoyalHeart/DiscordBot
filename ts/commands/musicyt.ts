@@ -1,14 +1,11 @@
 import {
   AudioPlayerStatus,
   AudioResource,
-  VoiceConnectionStatus,
   createAudioPlayer,
   createAudioResource,
   joinVoiceChannel,
 } from '@discordjs/voice';
 import {
-  BaseGuildTextChannel,
-  GuildTextBasedChannel,
   ChannelType,
   ChatInputCommandInteraction,
   Guild,
@@ -16,7 +13,6 @@ import {
   NewsChannel,
   TextChannel,
   VoiceBasedChannel,
-  VoiceChannel,
 } from 'discord.js';
 import ytdl from 'ytdl-core';
 import {getYoutubeVideoUrl} from './yt.js';
