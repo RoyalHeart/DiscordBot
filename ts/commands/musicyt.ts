@@ -106,31 +106,34 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
     console.log('> Loading', queue.get(guildId)!.songs[0].title);
   });
   player.on(AudioPlayerStatus.Playing, (e: any) => {
-    console.log('> Playing', serverQueue.songs[0].title);
+    console.log('> Playing', queue.get(guildId)!.songs[0].title);
   });
   player.on(AudioPlayerStatus.AutoPaused, (e) => {
-    player.play(serverQueue.songs[0].resource);
+    player.play(queue.get(guildId)!.songs[0].resource);
     console.log('> Auto pause');
   });
   player.on(AudioPlayerStatus.Idle, async (e) => {
     console.log('> Idle');
-    let currentSong = serverQueue.songs.shift()!;
+    let currentSong = queue.get(guildId)?.songs.shift()!;
     let nextRelatedSong = getNextRelatedSong(currentSong);
-    if (serverQueue.isLoop) {
+    // loop song by create and add again
+    if (queue.get(guildId)?.isLoop) {
       song = createSong(currentSong.songInfo);
-      serverQueue.songs.push(song);
+      queue.get(guildId)?.songs.push(song);
       player.play(song.resource);
     }
-    if (serverQueue.songs.length == 0) {
+    // play next random related song
+    if (queue.get(guildId)?.songs.length == 0) {
       song = await nextRelatedSong;
-      serverQueue.songs.push(song);
+      queue.get(guildId)?.songs.push(song);
       console.log('> Song url:', song.url);
       await channel.send({
         content: `> Playing related song **${song.title}**`,
       });
       player.play(song.resource);
+      // play next query song
     } else {
-      song = serverQueue.songs[0];
+      song = queue.get(guildId)!.songs[0];
       console.log('> Next song title' + song.title);
       if (song) {
         await channel.send({
