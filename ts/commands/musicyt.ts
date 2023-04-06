@@ -1,4 +1,5 @@
 import {
+  AudioPlayer,
   AudioPlayerStatus,
   AudioResource,
   createAudioPlayer,
@@ -17,100 +18,15 @@ import {
 import ytdl from 'ytdl-core';
 import {getYoutubeVideoUrl} from './yt.js';
 
-export async function test(interaction: ChatInputCommandInteraction) {
-  let url = await getYoutubeVideoUrl('hi ren');
-  const info = await ytdl.getBasicInfo(url);
-  // console.log('> info', info);
-  if (
-    !(interaction.member instanceof GuildMember) ||
-    !interaction.member.voice.channel
-  ) {
-    return interaction.reply({
-      content: 'You are not in a voice channel!',
-      ephemeral: true,
-    });
-  }
-  const voiceChannel = interaction.member.voice.channel;
-  console.log('> voice channel', voiceChannel);
-  info.videoDetails.title;
-}
-interface Song {
-  resource: AudioResource;
-  title: string;
-  url: string;
-  songInfo: ytdl.videoInfo;
-}
-interface ServerQueue {
-  textChannel: NewsChannel | TextChannel;
-  voiceChannel: VoiceBasedChannel;
-  connection: any;
-  songs: Array<Song>;
-  volume: 5;
-  playing: true;
-  isLoop: boolean | null;
-}
-
-let serverQueue: ServerQueue;
-let queue = new Map();
-const player = createAudioPlayer({
-  behaviors: {
-    maxMissedFrames: 20,
-  },
-});
-function isUrl(url: string): boolean {
-  var expression =
-    /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi;
-  var regex = new RegExp(expression);
-  return url.match(regex) !== null;
-}
-
-async function getUrlFromQuery(query: string): Promise<string> {
-  let url;
-  if (!isUrl(query)) {
-    url = await getYoutubeVideoUrl(query);
-  } else {
-    url = query;
-  }
-  return url;
-}
-
-function createSong(songInfo: ytdl.videoInfo): Song {
-  const stream = ytdl(songInfo.videoDetails.video_url, {
-    filter: 'audioonly',
-    highWaterMark: 1 << 30,
-    liveBuffer: 20000,
-    // dlChunkSize: 4096,
-    dlChunkSize: 0, //disabling chunking is recommended in discord bot
-    quality: 'lowestaudio',
-  });
-
-  const resource = createAudioResource(stream, {
-    metadata: {
-      title: songInfo.videoDetails.title,
+let queue = new Map<string, ServerQueue>();
+export default async function playyt(interaction: ChatInputCommandInteraction) {
+  let song: Song;
+  let serverQueue: ServerQueue;
+  const player = createAudioPlayer({
+    behaviors: {
+      maxMissedFrames: 20,
     },
   });
-
-  const song: Song = {
-    resource: resource,
-    title: songInfo.videoDetails.title,
-    url: songInfo.videoDetails.video_url,
-    songInfo: songInfo,
-  };
-
-  return song;
-}
-
-async function getNextRelatedSong(song: Song): Promise<Song> {
-  const relatedVideos = song.songInfo.related_videos;
-  const randomIndex = Math.floor(Math.random() * relatedVideos.length);
-  const nextSongId = relatedVideos[randomIndex].id;
-  const nextSongUrl = `https://youtube.com/watch?v=${nextSongId}`;
-  const nextSongInfo = await ytdl.getInfo(nextSongUrl);
-  const nextSong = createSong(nextSongInfo);
-  return nextSong;
-}
-let song: Song;
-export default async function playyt(interaction: ChatInputCommandInteraction) {
   if (!(interaction.channel?.type === ChannelType.GuildText)) {
     return interaction.reply({
       content: 'You are not in a channel!',
@@ -142,7 +58,8 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
   song = createSong(songInfo);
 
   const voiceChannel = interaction.member.voice.channel;
-  if (!serverQueue) {
+  const guildId: string = interaction.guild.id || '';
+  if (!queue.get(guildId)) {
     try {
       const connection = joinVoiceChannel({
         channelId: interaction.member.voice.channel.id,
@@ -150,30 +67,8 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
         adapterCreator: interaction.member.guild.voiceAdapterCreator as any,
         selfMute: false,
       });
-      // const networkStateChangeHandler = (
-      //   oldNetworkState: any,
-      //   newNetworkState: any
-      // ) => {
-      //   const newUdp = Reflect.get(newNetworkState, 'udp');
-      //   clearInterval(newUdp?.keepAliveInterval);
-      // };
-
-      // connection.on('stateChange', (oldState, newState) => {
-      //   const oldNetworking = Reflect.get(oldState, 'networking');
-      //   const newNetworking = Reflect.get(newState, 'networking');
-
-      //   oldNetworking?.off('stateChange', networkStateChangeHandler);
-      //   newNetworking?.on('stateChange', networkStateChangeHandler);
-      // });
-      // connection.on('stateChange', (old_state, new_state) => {
-      //   if (
-      //     old_state.status === VoiceConnectionStatus.Ready &&
-      //     new_state.status === VoiceConnectionStatus.Connecting
-      //   ) {
-      //     connection.configureNetworking();
-      //   }
-      // });
       const queueContruct: ServerQueue = {
+        player: player,
         textChannel: interaction.channel,
         voiceChannel: voiceChannel,
         connection: null as any,
@@ -183,8 +78,8 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
         isLoop: false,
       };
       serverQueue = queueContruct;
-      queue.set(interaction.guild.id, queueContruct);
       queueContruct.connection = connection;
+      queue.set(interaction.guild.id, queueContruct);
       connection.subscribe(player);
       player.play(song.resource);
       await interaction.followUp({
@@ -192,12 +87,12 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
       });
     } catch (err) {
       console.log(err);
-      queue.delete(interaction.guild.id);
+      queue.delete(guildId);
       player.stop();
       return interaction.channel!.send(err);
     }
   } else {
-    serverQueue.songs.push(song);
+    queue.get(guildId)?.songs.push(song);
     if (player.state.status === 'idle') {
       player.play(song.resource);
       return interaction.channel.send(`> Playing **${song.title}**`);
@@ -208,7 +103,7 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
   }
 
   player.on(AudioPlayerStatus.Buffering, async (e: any) => {
-    console.log('> Loading', serverQueue.songs[0].title);
+    console.log('> Loading', queue.get(guildId)!.songs[0].title);
   });
   player.on(AudioPlayerStatus.Playing, (e: any) => {
     console.log('> Playing', serverQueue.songs[0].title);
@@ -269,7 +164,8 @@ export async function loopyt(interaction: ChatInputCommandInteraction) {
       ephemeral: true,
     });
   }
-  if (serverQueue.isLoop) {
+  const guildId: string = interaction.guild.id || '';
+  if (queue.get(guildId)?.isLoop) {
     interaction.reply({content: '> Stop looping current song'});
   } else {
     interaction.reply({content: '> Looping current song'});
@@ -277,7 +173,7 @@ export async function loopyt(interaction: ChatInputCommandInteraction) {
   setTimeout(async () => {
     await interaction.deleteReply();
   }, 2000);
-  serverQueue.isLoop = !serverQueue.isLoop;
+  queue.get(guildId)!.isLoop = !queue.get(guildId)?.isLoop;
 }
 export async function skipyt(interaction: ChatInputCommandInteraction) {
   if (!(interaction.channel?.type === ChannelType.GuildText)) {
@@ -306,21 +202,22 @@ export async function skipyt(interaction: ChatInputCommandInteraction) {
     await interaction.deleteReply();
   }, 2000);
   const channel = interaction.channel;
-  const song = serverQueue.songs.shift();
-  const nextSong = serverQueue.songs[0];
+  const guildId = interaction.guild.id;
+  const song = queue.get(guildId)?.songs.shift();
+  const nextSong = queue.get(guildId)?.songs[0];
   if (nextSong) {
     channel.send({
       content: `> Skip to **${nextSong.title}**`,
     });
-    return player.play(nextSong.resource);
+    return queue.get(guildId)?.player.play(nextSong.resource);
   } else {
     if (song) {
       const nextSong = await getNextRelatedSong(song);
-      serverQueue.songs.push(nextSong);
+      queue.get(guildId)?.songs.push(nextSong);
       channel.send({
         content: `> Skip to next related song **${nextSong.title}**`,
       });
-      player.play(nextSong.resource);
+      queue.get(guildId)?.player.play(nextSong.resource);
     } else {
       channel.send({
         content: `> No related song`,
@@ -352,7 +249,8 @@ export async function pauseyt(interaction: ChatInputCommandInteraction) {
     });
   }
   const channel = interaction.channel;
-  player.pause();
+  const guildId = interaction.guild.id;
+  queue.get(guildId)?.player.pause();
   interaction.reply({content: `> Pausing`});
   setTimeout(async () => {
     await interaction.deleteReply();
@@ -367,10 +265,96 @@ export async function resumeyt(interaction: ChatInputCommandInteraction) {
       ephemeral: true,
     });
   }
-  player.unpause();
+  if (!(interaction.guild instanceof Guild)) {
+    return interaction.reply({
+      content: 'You are not in a guild channel!',
+      ephemeral: true,
+    });
+  }
+  if (
+    !(interaction.member instanceof GuildMember) ||
+    !interaction.member.voice.channel
+  ) {
+    return interaction.reply({
+      content: 'You are not in a voice channel!',
+      ephemeral: true,
+    });
+  }
+  const guildId = interaction.guild.id;
+  queue.get(guildId)?.player.unpause();
   interaction.reply({content: `> Resume`});
   setTimeout(async () => {
     await interaction.deleteReply();
   }, 2000);
   interaction.channel.send({content: `> Resume`});
+}
+
+interface Song {
+  resource: AudioResource;
+  title: string;
+  url: string;
+  songInfo: ytdl.videoInfo;
+}
+interface ServerQueue {
+  player: AudioPlayer;
+  textChannel: NewsChannel | TextChannel;
+  voiceChannel: VoiceBasedChannel;
+  connection: any;
+  songs: Array<Song>;
+  volume: 5;
+  playing: true;
+  isLoop: boolean | null;
+}
+
+function isUrl(url: string): boolean {
+  var expression =
+    /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi;
+  var regex = new RegExp(expression);
+  return url.match(regex) !== null;
+}
+
+async function getUrlFromQuery(query: string): Promise<string> {
+  let url;
+  if (!isUrl(query)) {
+    url = await getYoutubeVideoUrl(query);
+  } else {
+    url = query;
+  }
+  return url;
+}
+
+function createSong(songInfo: ytdl.videoInfo): Song {
+  const stream = ytdl(songInfo.videoDetails.video_url, {
+    filter: 'audioonly',
+    highWaterMark: 1 << 30,
+    liveBuffer: 20000,
+    // dlChunkSize: 4096,
+    dlChunkSize: 0, //disabling chunking is recommended in discord bot
+    quality: 'lowestaudio',
+  });
+
+  const resource = createAudioResource(stream, {
+    metadata: {
+      title: songInfo.videoDetails.title,
+    },
+  });
+
+  const song: Song = {
+    resource: resource,
+    title: songInfo.videoDetails.title,
+    url: songInfo.videoDetails.video_url,
+    songInfo: songInfo,
+  };
+
+  return song;
+}
+
+async function getNextRelatedSong(song: Song): Promise<Song> {
+  const relatedVideos = song.songInfo.related_videos;
+  const randomIndex = Math.floor(Math.random() * relatedVideos.length);
+  const nextSongId = relatedVideos[randomIndex].id;
+  const nextSongUrl = `https://youtube.com/watch?v=${nextSongId}`;
+  const nextSongInfo = await ytdl.getInfo(nextSongUrl);
+  const nextSong = createSong(nextSongInfo);
+  return nextSong;
 }
