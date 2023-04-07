@@ -2,6 +2,7 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   AudioResource,
+  VoiceConnection,
   createAudioPlayer,
   createAudioResource,
   joinVoiceChannel,
@@ -22,11 +23,6 @@ let queue = new Map<string, ServerQueue>();
 export default async function playyt(interaction: ChatInputCommandInteraction) {
   let song: Song;
   let serverQueue: ServerQueue;
-  const player = createAudioPlayer({
-    behaviors: {
-      maxMissedFrames: 20,
-    },
-  });
   if (!(interaction.channel?.type === ChannelType.GuildText)) {
     return interaction.reply({
       content: 'You are not in a channel!',
@@ -51,7 +47,7 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
   const channel = interaction.channel;
 
-  const query = interaction.options.get('query')?.value as string;
+  const query = interaction.options.get('query')!.value as string;
   console.log('> Query:', query);
   const url = await getUrlFromQuery(query);
   const songInfo = await ytdl.getInfo(url);
@@ -60,6 +56,11 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
   const voiceChannel = interaction.member.voice.channel;
   const guildId: string = interaction.guild.id || '';
   if (!queue.get(guildId)) {
+    const player = createAudioPlayer({
+      behaviors: {
+        maxMissedFrames: 20,
+      },
+    });
     try {
       const connection = joinVoiceChannel({
         channelId: interaction.member.voice.channel.id,
@@ -92,9 +93,10 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
       return interaction.channel!.send(err);
     }
   } else {
-    queue.get(guildId)?.songs.push(song);
-    if (player.state.status === 'idle') {
-      player.play(song.resource);
+    const serverQueue = queue.get(guildId);
+    serverQueue!.songs.push(song);
+    if (queue.get(guildId)!.player.state.status === 'idle') {
+      queue.get(guildId)!.player.play(song.resource);
       return interaction.channel.send(`> Playing **${song.title}**`);
     }
     await interaction.followUp(`> Adding ${song.title} to queue`);
@@ -102,35 +104,35 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
     return interaction.channel.send(`> Add **${song.title}** to the queue!`);
   }
 
-  player.on(AudioPlayerStatus.Buffering, async (e: any) => {
+  queue.get(guildId)!.player.on(AudioPlayerStatus.Buffering, async (e: any) => {
     console.log('> Loading', queue.get(guildId)!.songs[0].title);
   });
-  player.on(AudioPlayerStatus.Playing, (e: any) => {
+  queue.get(guildId)!.player.on(AudioPlayerStatus.Playing, (e: any) => {
     console.log('> Playing', queue.get(guildId)!.songs[0].title);
   });
-  player.on(AudioPlayerStatus.AutoPaused, (e) => {
-    player.play(queue.get(guildId)!.songs[0].resource);
-    console.log('> Auto pause');
+  queue.get(guildId)!.player.on(AudioPlayerStatus.AutoPaused, (e) => {
+    queue.get(guildId)!.player.play(queue.get(guildId)!.songs[0].resource);
+    console.log('> Auto pause, play again');
   });
-  player.on(AudioPlayerStatus.Idle, async (e) => {
+  queue.get(guildId)!.player.on(AudioPlayerStatus.Idle, async (e) => {
     console.log('> Idle');
-    let currentSong = queue.get(guildId)?.songs.shift()!;
+    let currentSong = queue.get(guildId)!.songs.shift()!;
     let nextRelatedSong = getNextRelatedSong(currentSong);
     // loop song by create and add again
-    if (queue.get(guildId)?.isLoop) {
+    if (queue.get(guildId)!.isLoop) {
       song = createSong(currentSong.songInfo);
-      queue.get(guildId)?.songs.push(song);
-      player.play(song.resource);
+      queue.get(guildId)!.songs.push(song);
+      queue.get(guildId)!.player.play(song.resource);
     }
     // play next random related song
-    if (queue.get(guildId)?.songs.length == 0) {
+    if (queue.get(guildId)!.songs.length == 0) {
       song = await nextRelatedSong;
-      queue.get(guildId)?.songs.push(song);
+      queue.get(guildId)!.songs.push(song);
       console.log('> Song url:', song.url);
       await channel.send({
         content: `> Playing related song **${song.title}**`,
       });
-      player.play(song.resource);
+      queue.get(guildId)!.player.play(song.resource);
       // play next query song
     } else {
       song = queue.get(guildId)!.songs[0];
@@ -139,14 +141,14 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
         await channel.send({
           content: `> Playing **${song.title}**`,
         });
-        player.play(song.resource);
+        queue.get(guildId)!.player.play(song.resource);
       }
     }
   });
 }
 
 export async function loopyt(interaction: ChatInputCommandInteraction) {
-  if (!(interaction.channel?.type === ChannelType.GuildText)) {
+  if (!(interaction.channel!.type === ChannelType.GuildText)) {
     return interaction.reply({
       content: 'You are not in a channel!',
       ephemeral: true,
@@ -168,7 +170,7 @@ export async function loopyt(interaction: ChatInputCommandInteraction) {
     });
   }
   const guildId: string = interaction.guild.id || '';
-  if (queue.get(guildId)?.isLoop) {
+  if (queue.get(guildId)!.isLoop) {
     interaction.reply({content: '> Stop looping current song'});
   } else {
     interaction.reply({content: '> Looping current song'});
@@ -176,8 +178,9 @@ export async function loopyt(interaction: ChatInputCommandInteraction) {
   setTimeout(async () => {
     await interaction.deleteReply();
   }, 2000);
-  queue.get(guildId)!.isLoop = !queue.get(guildId)?.isLoop;
+  queue.get(guildId)!.isLoop = !queue.get(guildId)!.isLoop;
 }
+
 export async function skipyt(interaction: ChatInputCommandInteraction) {
   if (!(interaction.channel?.type === ChannelType.GuildText)) {
     return interaction.reply({
@@ -206,21 +209,21 @@ export async function skipyt(interaction: ChatInputCommandInteraction) {
   }, 2000);
   const channel = interaction.channel;
   const guildId = interaction.guild.id;
-  const song = queue.get(guildId)?.songs.shift();
-  const nextSong = queue.get(guildId)?.songs[0];
+  const song = queue.get(guildId)!.songs.shift();
+  const nextSong = queue.get(guildId)!.songs[0];
   if (nextSong) {
     channel.send({
       content: `> Skip to **${nextSong.title}**`,
     });
-    return queue.get(guildId)?.player.play(nextSong.resource);
+    return queue.get(guildId)!.player.play(nextSong.resource);
   } else {
     if (song) {
       const nextSong = await getNextRelatedSong(song);
-      queue.get(guildId)?.songs.push(nextSong);
+      queue.get(guildId)!.songs.push(nextSong);
       channel.send({
         content: `> Skip to next related song **${nextSong.title}**`,
       });
-      queue.get(guildId)?.player.play(nextSong.resource);
+      queue.get(guildId)!.player.play(nextSong.resource);
     } else {
       channel.send({
         content: `> No related song`,
@@ -253,7 +256,7 @@ export async function pauseyt(interaction: ChatInputCommandInteraction) {
   }
   const channel = interaction.channel;
   const guildId = interaction.guild.id;
-  queue.get(guildId)?.player.pause();
+  queue.get(guildId)!.player.pause();
   interaction.reply({content: `> Pausing`});
   setTimeout(async () => {
     await interaction.deleteReply();
@@ -261,7 +264,38 @@ export async function pauseyt(interaction: ChatInputCommandInteraction) {
   channel.send(`> Pausing`);
 }
 
-export async function resumeyt(interaction: ChatInputCommandInteraction) {
+export function resumeyt(interaction: ChatInputCommandInteraction) {
+  if (!(interaction.channel?.type === ChannelType.GuildText)) {
+    return interaction.reply({
+      content: 'You are not in a channel!',
+      ephemeral: true,
+    });
+  }
+  if (!(interaction.guild instanceof Guild)) {
+    return interaction.reply({
+      content: 'You are not in a guild channel!',
+      ephemeral: true,
+    });
+  }
+  if (
+    !(interaction.member instanceof GuildMember) ||
+    !interaction.member.voice.channel
+  ) {
+    return interaction.reply({
+      content: 'You are not in a voice channel!',
+      ephemeral: true,
+    });
+  }
+  const channel = interaction.channel;
+  const guildId = interaction.guild.id;
+  queue.get(guildId)!.player.unpause();
+  interaction.reply({content: `> Resuming`});
+  setTimeout(async () => {
+    await interaction.deleteReply();
+  }, 2000);
+  channel.send({content: `> Resume`});
+}
+export function stopyt(interaction: ChatInputCommandInteraction) {
   if (!(interaction.channel?.type === ChannelType.GuildText)) {
     return interaction.reply({
       content: 'You are not in a channel!',
@@ -284,14 +318,13 @@ export async function resumeyt(interaction: ChatInputCommandInteraction) {
     });
   }
   const guildId = interaction.guild.id;
-  queue.get(guildId)?.player.unpause();
-  interaction.reply({content: `> Resume`});
+  queue.get(guildId)!.connection.destroy();
+  queue.delete(guildId);
+  interaction.reply({content: `> Stoping...`});
   setTimeout(async () => {
-    await interaction.deleteReply();
+    interaction.editReply({content: `> Stop`});
   }, 2000);
-  interaction.channel.send({content: `> Resume`});
 }
-
 interface Song {
   resource: AudioResource;
   title: string;
@@ -302,7 +335,7 @@ interface ServerQueue {
   player: AudioPlayer;
   textChannel: NewsChannel | TextChannel;
   voiceChannel: VoiceBasedChannel;
-  connection: any;
+  connection: VoiceConnection;
   songs: Array<Song>;
   volume: 5;
   playing: true;
