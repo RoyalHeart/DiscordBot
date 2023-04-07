@@ -37,7 +37,7 @@ async function getYoutubeVideoUrls(title, numbers) {
     let videoUrls = [];
     for (let index = 0; index < numbers; index++) {
         try {
-            const videoId = videoInfos[index].id.videoId || undefined;
+            const videoId = videoInfos[index].id.videoId;
             if (videoId !== undefined) {
                 let videoUrl = `https://youtube.com/watch?v=${videoId}`;
                 videoUrls.push(videoUrl);

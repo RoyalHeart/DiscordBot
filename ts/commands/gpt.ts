@@ -10,19 +10,15 @@ dotenv.config();
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const CHAT_GPT_CHAT_URL = 'https://api.openai.com/v1/chat/completions';
-function getTextChannel(message: Message): TextChannel | null {
-  if (message.channel instanceof TextChannel) {
-    return message.channel;
-  }
-  return null;
-}
 
 export default async function gpt(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
   const query = interaction.options.get('query')?.value as string;
-  interaction.reply('Ask: ' + query);
-  const content = await getChatGPTResponse(query);
-  interaction.followUp('ChatGPT is thinking...');
-  interaction.editReply('ChatGPT: ' + content);
+  await interaction.followUp('Ask: ' + query);
+  interaction.followUp('ChatGPT is thinking...').then(async (message) => {
+    const content = await getChatGPTResponse(query);
+    message.edit('ChatGPT: ' + content);
+  });
 }
 
 async function getChatGPTResponse(query: string): Promise<string> {
@@ -39,7 +35,7 @@ async function getChatGPTResponse(query: string): Promise<string> {
       },
     }
   );
-  console.log(response);
+  console.log(response.data.choices);
   const content = response.data.choices[0].message.content;
   return content;
 }
