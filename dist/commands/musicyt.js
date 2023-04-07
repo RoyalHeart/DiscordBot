@@ -289,6 +289,8 @@ export function stopyt(interaction) {
     }
     const channel = interaction.channel;
     const guildId = interaction.guild.id;
+    queue.get(guildId).player.pause();
+    queue.get(guildId).connection.disconnect();
     queue.get(guildId).connection.destroy();
     queue.delete(guildId);
     interaction.reply({ content: `> Stoping...` });
