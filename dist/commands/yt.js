@@ -33,7 +33,6 @@ export async function yt(interaction) {
 }
 async function getYoutubeVideoUrls(title, numbers) {
     let videoInfos = await getYoutubeVideoInfos(title);
-    console.log(videoInfos);
     let videoUrls = [];
     for (let index = 0; index < numbers; index++) {
         try {
@@ -55,7 +54,6 @@ async function getYoutubeVideoUrls(title, numbers) {
 }
 export async function getYoutubeVideoUrl(title) {
     let videoInfos = await getYoutubeVideoInfos(title);
-    console.log(videoInfos);
     let index = 0;
     let videoUrl = '';
     while (videoUrl == '') {
@@ -73,7 +71,6 @@ async function getYoutubeVideoInfos(title) {
     let searchQuery = tokens.join('%20');
     let search_query = `https://youtube.googleapis.com/youtube/v3/search?q=${searchQuery}&key=${youtubeApiKey}`;
     let data = await getAxiosData(search_query);
-    // console.log(data);
     let results = data['items'];
     return results;
 }

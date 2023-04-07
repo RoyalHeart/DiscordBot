@@ -43,7 +43,6 @@ async function getYoutubeVideoUrls(
   numbers: number
 ): Promise<string[]> {
   let videoInfos = await getYoutubeVideoInfos(title);
-  console.log(videoInfos);
   let videoUrls = [];
   for (let index = 0; index < numbers; index++) {
     try {
@@ -64,7 +63,6 @@ async function getYoutubeVideoUrls(
 
 export async function getYoutubeVideoUrl(title: string) {
   let videoInfos = await getYoutubeVideoInfos(title);
-  console.log(videoInfos);
   let index = 0;
   let videoUrl: string = '';
   while (videoUrl == '') {
@@ -82,7 +80,6 @@ async function getYoutubeVideoInfos(title: string): Promise<any> {
   let searchQuery = tokens.join('%20');
   let search_query = `https://youtube.googleapis.com/youtube/v3/search?q=${searchQuery}&key=${youtubeApiKey}`;
   let data = await getAxiosData(search_query);
-  // console.log(data);
   let results = data['items'];
   return results;
 }

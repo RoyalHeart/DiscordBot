@@ -4,8 +4,6 @@ import ytdl from 'ytdl-core';
 import { getYoutubeVideoUrl } from './yt.js';
 let queue = new Map();
 export default async function playyt(interaction) {
-    let song;
-    let serverQueue;
     if (!(interaction.channel?.type === ChannelType.GuildText)) {
         return interaction.reply({
             content: 'You are not in a channel!',
@@ -27,105 +25,118 @@ export default async function playyt(interaction) {
     }
     await interaction.deferReply();
     const channel = interaction.channel;
-    const query = interaction.options.get('query').value;
-    console.log('> Query:', query);
-    const url = await getUrlFromQuery(query);
-    const songInfo = await ytdl.getInfo(url);
-    song = createSong(songInfo);
-    const voiceChannel = interaction.member.voice.channel;
-    const guildId = interaction.guild.id || '';
-    if (!queue.get(guildId)) {
-        const player = createAudioPlayer({
-            behaviors: {
-                maxMissedFrames: 20,
-            },
-        });
-        try {
-            const connection = joinVoiceChannel({
-                channelId: interaction.member.voice.channel.id,
-                guildId: interaction.guildId,
-                adapterCreator: interaction.member.guild.voiceAdapterCreator,
-                selfMute: false,
+    var server;
+    var song;
+    try {
+        const query = interaction.options.get('query').value;
+        console.log('> Query:', query);
+        const url = await getUrlFromQuery(query);
+        const songInfo = await ytdl.getInfo(url);
+        song = createSong(songInfo);
+        const voiceChannel = interaction.member.voice.channel;
+        const guildId = interaction.guild.id || '';
+        if (!queue.get(guildId)) {
+            const player = createAudioPlayer({
+                behaviors: {
+                    maxMissedFrames: 20,
+                },
             });
-            const queueContruct = {
-                player: player,
-                textChannel: interaction.channel,
-                voiceChannel: voiceChannel,
-                connection: null,
-                songs: [song],
-                volume: 5,
-                playing: true,
-                isLoop: false,
-            };
-            serverQueue = queueContruct;
-            queueContruct.connection = connection;
-            queue.set(interaction.guild.id, queueContruct);
-            connection.subscribe(player);
-            player.play(song.resource);
-            await interaction.followUp({
-                content: `> Playing **${song.title}**`,
-            });
-        }
-        catch (err) {
-            console.log(err);
-            queue.delete(guildId);
-            player.stop();
-            return interaction.channel.send(err);
-        }
-    }
-    else {
-        const serverQueue = queue.get(guildId);
-        serverQueue.songs.push(song);
-        if (queue.get(guildId).player.state.status === 'idle') {
-            queue.get(guildId).player.play(song.resource);
-            return interaction.channel.send(`> Playing **${song.title}**`);
-        }
-        await interaction.followUp(`> Adding ${song.title} to queue`);
-        await interaction.deleteReply();
-        return interaction.channel.send(`> Add **${song.title}** to the queue!`);
-    }
-    queue.get(guildId).player.on(AudioPlayerStatus.Buffering, async (e) => {
-        console.log('> Loading', queue.get(guildId).songs[0].title);
-    });
-    queue.get(guildId).player.on(AudioPlayerStatus.Playing, (e) => {
-        console.log('> Playing', queue.get(guildId).songs[0].title);
-    });
-    queue.get(guildId).player.on(AudioPlayerStatus.AutoPaused, (e) => {
-        queue.get(guildId).player.play(queue.get(guildId).songs[0].resource);
-        console.log('> Auto pause, play again');
-    });
-    queue.get(guildId).player.on(AudioPlayerStatus.Idle, async (e) => {
-        console.log('> Idle');
-        let currentSong = queue.get(guildId).songs.shift();
-        let nextRelatedSong = getNextRelatedSong(currentSong);
-        // loop song by create and add again
-        if (queue.get(guildId).isLoop) {
-            song = createSong(currentSong.songInfo);
-            queue.get(guildId).songs.push(song);
-            queue.get(guildId).player.play(song.resource);
-        }
-        // play next random related song
-        if (queue.get(guildId).songs.length == 0) {
-            song = await nextRelatedSong;
-            queue.get(guildId).songs.push(song);
-            console.log('> Song url:', song.url);
-            await channel.send({
-                content: `> Playing related song **${song.title}**`,
-            });
-            queue.get(guildId).player.play(song.resource);
-            // play next query song
-        }
-        else {
-            song = queue.get(guildId).songs[0];
-            console.log('> Next song title' + song.title);
-            if (song) {
-                await channel.send({
+            try {
+                const connection = joinVoiceChannel({
+                    channelId: interaction.member.voice.channel.id,
+                    guildId: interaction.guildId,
+                    adapterCreator: interaction.member.guild.voiceAdapterCreator,
+                    selfMute: false,
+                });
+                const queueContruct = {
+                    player: player,
+                    textChannel: interaction.channel,
+                    voiceChannel: voiceChannel,
+                    connection: connection,
+                    songs: [song],
+                    playing: true,
+                    isLoop: false,
+                };
+                server = queueContruct;
+                queue.set(guildId, queueContruct);
+                connection.subscribe(player);
+                player.play(song.resource);
+                await interaction.followUp({
                     content: `> Playing **${song.title}**`,
                 });
-                queue.get(guildId).player.play(song.resource);
+            }
+            catch (err) {
+                console.log(err);
+                queue.delete(guildId);
+                player.stop();
+                return interaction.channel.send(err);
             }
         }
-    });
+        else {
+            const serverQueue = queue.get(guildId);
+            server = serverQueue;
+            serverQueue.songs.push(song);
+            if (queue.get(guildId).player.state.status === 'idle') {
+                queue.get(guildId).player.play(song.resource);
+                return interaction.channel.send(`> Playing **${song.title}**`);
+            }
+            await interaction.followUp(`> Adding ${song.title} to queue`);
+            await interaction.deleteReply();
+            return interaction.channel.send(`> Add **${song.title}** to the queue!`);
+        }
+        server.player.on(AudioPlayerStatus.Buffering, async (e) => {
+            console.log('> Loading', server.songs[0].title);
+        });
+        server.player.on(AudioPlayerStatus.Playing, (e) => {
+            console.log('> Playing', server.songs[0].title);
+        });
+        server.player.on(AudioPlayerStatus.AutoPaused, (e) => {
+            server.player.play(server.songs[0].resource);
+            console.log('> Auto pause, play again');
+        });
+        server.player.on(AudioPlayerStatus.Idle, async (e) => {
+            try {
+                console.log('> Idle');
+                let currentSong = server.songs.shift();
+                let nextRelatedSong = getNextRelatedSong(currentSong);
+                // loop song by create and add again
+                if (server.isLoop) {
+                    song = createSong(currentSong.songInfo);
+                    console.log('> Song url:', song.url);
+                    server.songs.push(song);
+                    server.player.play(song.resource);
+                }
+                // play next random related song
+                if (server.songs.length == 0) {
+                    song = await nextRelatedSong;
+                    server.songs.push(song);
+                    console.log('> Song url:', song.url);
+                    await channel.send({
+                        content: `> Playing related song **${song.title}**`,
+                    });
+                    server.player.play(song.resource);
+                    // play next query song
+                }
+                else {
+                    song = server.songs[0];
+                    console.log('> Song url:', song.url);
+                    console.log('> Next song title' + song.title);
+                    if (song) {
+                        await channel.send({
+                            content: `> Playing **${song.title}**`,
+                        });
+                        server.player.play(song.resource);
+                    }
+                }
+            }
+            catch (error) {
+                console.log('> Error: ' + error);
+            }
+        });
+    }
+    catch (error) {
+        console.log('> Error: ' + error);
+    }
 }
 export async function loopyt(interaction) {
     if (!(interaction.channel.type === ChannelType.GuildText)) {
@@ -148,7 +159,8 @@ export async function loopyt(interaction) {
         });
     }
     const guildId = interaction.guild.id || '';
-    if (queue.get(guildId).isLoop) {
+    const server = queue.get(guildId);
+    if (server.isLoop) {
         interaction.reply({ content: '> Stop looping current song' });
     }
     else {
@@ -157,7 +169,7 @@ export async function loopyt(interaction) {
     setTimeout(async () => {
         await interaction.deleteReply();
     }, 2000);
-    queue.get(guildId).isLoop = !queue.get(guildId).isLoop;
+    server.isLoop = !server.isLoop;
 }
 export async function skipyt(interaction) {
     if (!(interaction.channel?.type === ChannelType.GuildText)) {
@@ -185,22 +197,23 @@ export async function skipyt(interaction) {
     }, 2000);
     const channel = interaction.channel;
     const guildId = interaction.guild.id;
-    const song = queue.get(guildId).songs.shift();
-    const nextSong = queue.get(guildId).songs[0];
+    const server = queue.get(guildId);
+    const song = server.songs.shift();
+    const nextSong = server.songs[0];
     if (nextSong) {
         channel.send({
             content: `> Skip to **${nextSong.title}**`,
         });
-        return queue.get(guildId).player.play(nextSong.resource);
+        return server.player.play(nextSong.resource);
     }
     else {
         if (song) {
             const nextSong = await getNextRelatedSong(song);
-            queue.get(guildId).songs.push(nextSong);
+            server.songs.push(nextSong);
             channel.send({
                 content: `> Skip to next related song **${nextSong.title}**`,
             });
-            queue.get(guildId).player.play(nextSong.resource);
+            server.player.play(nextSong.resource);
         }
         else {
             channel.send({
@@ -231,7 +244,8 @@ export async function pauseyt(interaction) {
     }
     const channel = interaction.channel;
     const guildId = interaction.guild.id;
-    queue.get(guildId).player.pause();
+    const server = queue.get(guildId);
+    server.player.pause();
     interaction.reply({ content: `> Pausing` });
     setTimeout(async () => {
         await interaction.deleteReply();
@@ -260,7 +274,8 @@ export function resumeyt(interaction) {
     }
     const channel = interaction.channel;
     const guildId = interaction.guild.id;
-    queue.get(guildId).player.unpause();
+    const server = queue.get(guildId);
+    server.player.unpause();
     interaction.reply({ content: `> Resuming` });
     setTimeout(async () => {
         await interaction.deleteReply();
@@ -289,9 +304,10 @@ export function stopyt(interaction) {
     }
     const channel = interaction.channel;
     const guildId = interaction.guild.id;
-    queue.get(guildId).player.pause();
-    queue.get(guildId).connection.disconnect();
-    queue.get(guildId).connection.destroy();
+    const server = queue.get(guildId);
+    server.player.pause();
+    server.connection.disconnect();
+    server.connection.destroy();
     queue.delete(guildId);
     interaction.reply({ content: `> Stoping...` });
     setTimeout(async () => {
