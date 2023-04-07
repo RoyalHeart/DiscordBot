@@ -14,10 +14,12 @@ import {
   pauseyt,
   resumeyt,
   loopyt,
+  stopyt,
 } from './commands/musicyt.js';
 import quote from './commands/quote.js';
 import weather from './commands/weather.js';
 import yt from './commands/yt.js';
+import gpt from './commands/gpt.js';
 const commands = {
   help,
   hi,
@@ -34,6 +36,8 @@ const commands = {
   skipyt,
   pauseyt,
   resumeyt,
+  stopyt,
+  gpt,
 };
 export default async function interactionHandler(
   interaction: Interaction<CacheType>

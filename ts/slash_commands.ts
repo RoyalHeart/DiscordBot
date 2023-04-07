@@ -80,6 +80,19 @@ const play = {
     },
   ],
 };
+const gpt = {
+  name: 'gpt',
+  description: 'Chat to ChatGPT',
+  type: 1,
+  options: [
+    {
+      name: 'query',
+      type: 3,
+      description: 'Message to ChatGPT',
+      required: true,
+    },
+  ],
+};
 const playyt = {
   name: 'playyt',
   description: 'Plays a song from youtube',
@@ -111,6 +124,11 @@ const pauseyt = {
 const resumeyt = {
   name: 'resumeyt',
   description: 'Resume the player',
+  type: 1,
+};
+const stopyt = {
+  name: 'stopyt',
+  description: 'Stop the player',
   type: 1,
 };
 const skip = {
@@ -160,10 +178,12 @@ export async function createSlashCommand() {
   // await post(skipyt);
   // await post(pauseyt);
   // await post(resumeyt);
+  // await post(stopyt);
   // await post(play);
   // await post(skip);
   // await post(queue);
   // await post(stop);
+  // await post(gpt);
 }
 
 // await createSlashCommand();
