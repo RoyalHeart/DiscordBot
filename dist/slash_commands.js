@@ -88,6 +88,25 @@ const gpt = {
         },
     ],
 };
+const yt = {
+    name: 'yt',
+    description: 'Search Youtube video',
+    type: 1,
+    options: [
+        {
+            name: 'title',
+            type: 3,
+            description: 'Title of Youtube video',
+            required: true,
+        },
+        {
+            name: 'number',
+            type: 10,
+            description: 'Number of Youtube videos searched',
+            required: false,
+        },
+    ],
+};
 const playyt = {
     name: 'playyt',
     description: 'Plays a song from youtube',
@@ -141,10 +160,6 @@ const stop = {
     description: 'Stop the player',
     type: 1,
 };
-// headers = {
-//   Authorization: ' <my_credentials_token>',
-// };
-// r = requests.post(url, (headers = headers), (json = json));
 axios.defaults.headers.common = {
     'Content-Type': 'application/json',
     Accept: '*/*',
@@ -167,6 +182,7 @@ export async function createSlashCommand() {
     // await post(hi);
     // await post(crypto);
     // await post(playyt);
+    // await post(yt);
     // await post(skipyt);
     // await post(pauseyt);
     // await post(resumeyt);

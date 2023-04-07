@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ChannelType, TextChannel } from 'discord.js';
+import { ChannelType, TextChannel, } from 'discord.js';
 import * as dotenv from 'dotenv';
 dotenv.config();
 const youtubeApiKey = process.env.YOUTUBE_API_KEY;
@@ -25,12 +25,31 @@ export default async function (msg, tokens) {
         }
     }
 }
+export async function yt(interaction) {
+    const title = interaction.options.get('title').value;
+    const number = interaction.options.get('number').value || 5;
+    var urls = await getYoutubeVideoUrls(title, number);
+    interaction.reply(urls.join('\n'));
+}
 async function getYoutubeVideoUrls(title, numbers) {
     let videoInfos = await getYoutubeVideoInfos(title);
+    console.log(videoInfos);
     let videoUrls = [];
     for (let index = 0; index < numbers; index++) {
-        const videoId = videoInfos[index]['id']['videoId'];
-        videoUrls.push(videoId);
+        try {
+            const videoId = videoInfos[index].id.videoId || undefined;
+            if (videoId !== undefined) {
+                let videoUrl = `https://youtube.com/watch?v=${videoId}`;
+                videoUrls.push(videoUrl);
+            }
+            else {
+                numbers += 1;
+                continue;
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
     }
     return videoUrls;
 }
@@ -40,8 +59,8 @@ export async function getYoutubeVideoUrl(title) {
     let index = 0;
     let videoUrl = '';
     while (videoUrl == '') {
-        let videoId = videoInfos[index]['id']['videoId'];
-        if (videoId != null) {
+        let videoId = videoInfos[index]['id']['videoId'] || undefined;
+        if (videoId != undefined) {
             videoUrl = `https://youtube.com/watch?v=${videoId}`;
             break;
         }
