@@ -170,12 +170,12 @@ export async function createSlashCommand() {
     // await post(skipyt);
     // await post(pauseyt);
     // await post(resumeyt);
+    // await post(stopyt);
     // await post(play);
     // await post(skip);
     // await post(queue);
     // await post(stop);
     // await post(gpt);
-    await post(stopyt);
 }
 // await createSlashCommand();
 //# sourceMappingURL=slash_commands.js.map

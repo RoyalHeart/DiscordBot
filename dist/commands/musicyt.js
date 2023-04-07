@@ -92,7 +92,7 @@ export default async function playyt(interaction) {
     });
     queue.get(guildId).player.on(AudioPlayerStatus.AutoPaused, (e) => {
         queue.get(guildId).player.play(queue.get(guildId).songs[0].resource);
-        console.log('> Auto pause');
+        console.log('> Auto pause, play again');
     });
     queue.get(guildId).player.on(AudioPlayerStatus.Idle, async (e) => {
         console.log('> Idle');
@@ -287,13 +287,15 @@ export function stopyt(interaction) {
             ephemeral: true,
         });
     }
-    // const channel = interaction.channel;
+    const channel = interaction.channel;
     const guildId = interaction.guild.id;
-    queue.get(guildId).player.stop();
+    queue.get(guildId).connection.destroy();
+    queue.delete(guildId);
     interaction.reply({ content: `> Stoping...` });
     setTimeout(async () => {
-        interaction.editReply({ content: `> Stop` });
+        interaction.deleteReply();
     }, 2000);
+    channel.send({ content: `> Stop` });
 }
 function isUrl(url) {
     var expression = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi;
