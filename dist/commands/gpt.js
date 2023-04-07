@@ -7,9 +7,9 @@ export default async function gpt(interaction) {
     await interaction.deferReply();
     const query = interaction.options.get('query')?.value;
     await interaction.followUp('Ask: ' + query);
-    interaction.followUp('ChatGPT is thinking...').then(async (msg) => {
+    interaction.followUp('ChatGPT is thinking...').then(async (message) => {
         const content = await getChatGPTResponse(query);
-        msg.edit('ChatGPT: ' + content);
+        message.edit('ChatGPT: ' + content);
     });
 }
 async function getChatGPTResponse(query) {

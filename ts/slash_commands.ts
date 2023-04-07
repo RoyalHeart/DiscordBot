@@ -165,14 +165,28 @@ const stop = {
   description: 'Stop the player',
   type: 1,
 };
-
-axios.defaults.headers.common = {
-  'Content-Type': 'application/json',
-  Accept: '*/*',
-  Authorization: `Bot ${process.env.TOKEN}`,
+const ocr = {
+  name: 'ocr',
+  description: 'Read text from an image',
+  type: '1',
+  options: [
+    {
+      name: 'image',
+      type: 11,
+      description: 'The image to OCR',
+      required: true,
+    },
+  ],
 };
+
 async function post(json: any) {
-  const res = await axios.post(url, json);
+  const res = await axios.post(url, json, {
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: '*/*',
+      Authorization: `Bot ${process.env.TOKEN}`,
+    },
+  });
   let data = res.data;
   console.log(data);
 }
@@ -200,6 +214,7 @@ export async function createSlashCommand() {
   // await post(queue);
   // await post(stop);
   // await post(gpt);
+  // await post(ocr);
 }
 
 // await createSlashCommand();

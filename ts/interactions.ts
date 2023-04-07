@@ -17,6 +17,7 @@ import {
   skipyt,
   stopyt,
 } from './commands/musicyt.js';
+import {ocr} from './commands/ocr.js';
 import quote from './commands/quote.js';
 import weather from './commands/weather.js';
 import {yt} from './commands/yt.js';
@@ -38,6 +39,7 @@ const commands = {
   resumeyt,
   stopyt,
   gpt,
+  ocr,
 };
 export default async function interactionHandler(
   interaction: Interaction<CacheType>
