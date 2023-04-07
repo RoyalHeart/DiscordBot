@@ -13,17 +13,23 @@ export default async function gpt(interaction) {
     });
 }
 async function getChatGPTResponse(query) {
-    const response = await axios.post(CHAT_GPT_CHAT_URL, {
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: query }],
-    }, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-    });
-    console.log(response.data.choices);
-    const content = response.data.choices[0].message.content;
-    return content;
+    try {
+        const response = await axios.post(CHAT_GPT_CHAT_URL, {
+            model: 'gpt-3.5-turbo',
+            messages: [{ role: 'user', content: query }],
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${OPENAI_API_KEY}`,
+            },
+        });
+        console.log(response.data.choices);
+        const content = response.data.choices[0].message.content;
+        return content;
+    }
+    catch (error) {
+        console.log('> Error', error);
+        return 'Can not call ChatGPT now, please try again later.';
+    }
 }
 //# sourceMappingURL=gpt.js.map

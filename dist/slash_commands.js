@@ -171,6 +171,34 @@ const ocr = {
             description: 'The image to OCR',
             required: true,
         },
+        {
+            name: 'language',
+            description: 'The language in the image, default is English',
+            type: 3,
+            required: false,
+            choices: [
+                {
+                    name: 'English',
+                    value: 'eng',
+                },
+                {
+                    name: 'Vietnamese',
+                    value: 'vie',
+                },
+                {
+                    name: 'Chinese',
+                    value: 'chs',
+                },
+                {
+                    name: 'Korean',
+                    value: 'kor',
+                },
+                {
+                    name: 'Japanese',
+                    value: 'jpn',
+                },
+            ],
+        },
     ],
 };
 async function post(json) {

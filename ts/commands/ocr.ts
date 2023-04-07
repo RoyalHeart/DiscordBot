@@ -13,16 +13,25 @@ export default async function (msg: Message, tokens: any) {
 export async function ocr(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
   interaction.followUp('OCR with OCR Space...');
-  var image = interaction.options.get('image');
+  const image = interaction.options.get('image');
+  var language = 'eng';
+  try {
+    language = interaction.options.get('language')!.value as string;
+  } catch (error) {
+    console.log('> Error', error);
+  }
   console.log(image);
   const imageUrl = image?.attachment?.url as string;
-  const text = await getOcrText(imageUrl);
+  const text = await getOcrText(imageUrl, language);
   interaction.editReply(text);
 }
 
-async function getOcrText(imageUrl: string): Promise<string> {
-  const ocrUrl = `${OCR_SPACE_IMAGEURL_URL}?apikey=${OCR_SPACE_API_KEY}&url=${imageUrl}&isOverlayRequired=true&iscreatesearchablepdf=true&issearchablepdfhidetextlayer=true`;
-  // const response = await fetch(ocrUrl);
+async function getOcrText(imageUrl: string, language: string): Promise<string> {
+  var ocrUrl = '';
+  ocrUrl = `${OCR_SPACE_IMAGEURL_URL}?apikey=${OCR_SPACE_API_KEY}&url=${imageUrl}&isOverlayRequired=true&iscreatesearchablepdf=true&issearchablepdfhidetextlayer=true&language=${language}`;
+  if (language === 'vie') {
+    ocrUrl += `&OCREngine=3`;
+  }
   try {
     const response = await axios.get(ocrUrl);
     const text = response.data.ParsedResults[0].ParsedText as string;
