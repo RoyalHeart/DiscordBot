@@ -1,6 +1,6 @@
 import {CacheType, Interaction} from 'discord.js';
 import crypto from './commands/crypto.js';
-import gif from './commands/gif.js';
+import {gif} from './commands/gif.js';
 import {help} from './commands/help.js';
 import {hi} from './commands/hi.js';
 import {

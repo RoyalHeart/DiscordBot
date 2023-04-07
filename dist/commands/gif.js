@@ -5,17 +5,19 @@ dotenv.config();
 const tenorApiKey = process.env.TENOR_API_KEY;
 export default async function (msg, tokens) {
     if (msg.channel.type === ChannelType.GuildText) {
+        console.log(tokens);
         msg.channel.send(await getGif(tokens));
     }
 }
 export async function gif(interaction) {
-    var token = interaction.options.get('category')?.value?.toString();
-    var tokens = token.split(' ');
+    const token = interaction.options.get('category').value;
+    const tokens = token.split(' ');
     interaction.reply(await getGif(tokens));
 }
 async function getGif(tokens) {
     let searchUrl = '';
-    const haveArgs = tokens.length !== 0;
+    console.log(tokens);
+    const haveArgs = tokens.length > 0;
     if (!haveArgs) {
         // no args
         const lmt = 10;
