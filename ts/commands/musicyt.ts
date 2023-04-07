@@ -317,13 +317,15 @@ export function stopyt(interaction: ChatInputCommandInteraction) {
       ephemeral: true,
     });
   }
+  const channel = interaction.channel;
   const guildId = interaction.guild.id;
   queue.get(guildId)!.connection.destroy();
   queue.delete(guildId);
   interaction.reply({content: `> Stoping...`});
   setTimeout(async () => {
-    interaction.editReply({content: `> Stop`});
+    interaction.deleteReply();
   }, 2000);
+  channel.send({content: `> Stop`});
 }
 interface Song {
   resource: AudioResource;
