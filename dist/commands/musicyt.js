@@ -331,15 +331,34 @@ async function getUrlFromQuery(query) {
     return url;
 }
 function createSong(songInfo) {
-    const stream = ytdl(songInfo.videoDetails.video_url, {
-        filter: 'audioonly',
-        highWaterMark: 1 << 30,
-        liveBuffer: 20000,
-        // dlChunkSize: 4096,
-        dlChunkSize: 0,
-        quality: 'lowestaudio',
-    });
-    const resource = createAudioResource(stream, {
+    console.log(songInfo.formats);
+    const stream = () => {
+        if (songInfo.formats[0].isLive) {
+            const format = ytdl.chooseFormat(songInfo.formats, {
+                quality: [128, 127, 120, 96, 95, 94, 93],
+            });
+            console.log(format);
+            return format.url;
+        }
+        else
+            return ytdl.downloadFromInfo(songInfo, {
+                filter: 'audioonly',
+                highWaterMark: 1 << 30,
+                liveBuffer: 20000,
+                quality: 'lowestaudio',
+                dlChunkSize: 0, //disabling chunking is recommended in discord bot
+            });
+    };
+    // ytdl(songInfo.videoDetails.video_url, {
+    //   // filter: 'audioonly',
+    //   highWaterMark: 1 << 30,
+    //   liveBuffer: 20000,
+    //   // dlChunkSize: 4096,
+    //   dlChunkSize: 0, //disabling chunking is recommended in discord bot
+    //   quality: 'lowestaudio',
+    //   format: {itag: 94} as videoFormat,
+    // });
+    const resource = createAudioResource(stream(), {
         metadata: {
             title: songInfo.videoDetails.title,
         },
