@@ -11,8 +11,7 @@ export default async function (msg: Message, tokens: any) {
 }
 
 export async function ocr(interaction: ChatInputCommandInteraction) {
-  await interaction.deferReply();
-  interaction.followUp('OCR with OCR Space...');
+  await interaction.reply('OCR with OCR Space...');
   const image = interaction.options.get('image');
   var language = 'eng';
   try {
@@ -27,10 +26,21 @@ export async function ocr(interaction: ChatInputCommandInteraction) {
 }
 
 async function getOcrText(imageUrl: string, language: string): Promise<string> {
-  var ocrUrl = '';
-  ocrUrl = `${OCR_SPACE_IMAGEURL_URL}?apikey=${OCR_SPACE_API_KEY}&url=${imageUrl}&isOverlayRequired=true&iscreatesearchablepdf=true&issearchablepdfhidetextlayer=true&language=${language}`;
+  var ocrUrl = `${OCR_SPACE_IMAGEURL_URL}?apikey=${OCR_SPACE_API_KEY}&url=${imageUrl}&isOverlayRequired=true&iscreatesearchablepdf=true&language=${language}`;
   if (language === 'vie') {
-    ocrUrl += `&OCREngine=3`;
+    ocrUrl += `&OCREngine=3&issearchablepdfhidetextlayer=false`;
+  }
+  if (language === 'eng') {
+    ocrUrl += `&issearchablepdfhidetextlayer=true`;
+  }
+  if (language === 'chs') {
+    ocrUrl += `&issearchablepdfhidetextlayer=false`;
+  }
+  if (language === 'kor') {
+    ocrUrl += `&issearchablepdfhidetextlayer=false`;
+  }
+  if (language === 'jpn') {
+    ocrUrl += `&issearchablepdfhidetextlayer=false`;
   }
   try {
     const response = await axios.get(ocrUrl);
