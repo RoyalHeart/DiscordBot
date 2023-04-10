@@ -42,7 +42,7 @@ async function getCurrentWeather(location) {
         const weather = response.weather[0]['main'];
         const description = response.weather[0]['description'];
         const time = timeConverter(response['dt']);
-        const message = `Location: **${location}**, Temp: **${temp} C**, weather: **${weather}**, description: **${description}**, Time: **${time}**`;
+        const message = `Location: **${location}**, Temp: **${temp}°C**, weather: **${weather}**, description: **${description}**, Time: **${time}**`;
         return message;
     }
     catch (error) {
@@ -69,7 +69,7 @@ async function getForecastWeather(location) {
                 const weather = mainWeather;
                 const description = forecast.weather[0].description;
                 const time = timeConverter(forecast.dt);
-                message += `\n-Location: **${location}**, Temp: **${temp}**, weather: **${weather}**, description: **${description}**, Time: **${time}**`;
+                message += `\n-Location: **${location}**, Temp: **${temp}°C**, weather: **${weather}**, description: **${description}**, Time: **${time}**`;
             }
         }
         if (!haveRain) {
