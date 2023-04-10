@@ -1,5 +1,4 @@
 import {CacheType, Interaction} from 'discord.js';
-import {log} from './mongodb.js';
 import {crypto} from './commands/crypto.js';
 import {gif} from './commands/gif.js';
 import gpt from './commands/gpt.js';
@@ -20,8 +19,9 @@ import {
 } from './commands/musicyt.js';
 import {ocr} from './commands/ocr.js';
 import quote from './commands/quote.js';
-import weather from './commands/weather.js';
+import {weather} from './commands/weather.js';
 import {yt} from './commands/yt.js';
+import {log} from './mongodb.js';
 const commands = {
   help,
   hi,

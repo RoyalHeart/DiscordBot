@@ -18,7 +18,7 @@ export default async function (msg, tokens) {
 export async function crypto(interaction) {
     await interaction.deferReply();
     const message = (await getLatest10Crypto());
-    interaction.reply(message);
+    interaction.followUp(message);
 }
 async function getLatest10Crypto() {
     try {

@@ -1,4 +1,3 @@
-import { log } from './mongodb.js';
 import { crypto } from './commands/crypto.js';
 import { gif } from './commands/gif.js';
 import gpt from './commands/gpt.js';
@@ -8,8 +7,9 @@ import { default as play, default as skip, default as stop, } from './commands/m
 import { loopyt, pauseyt, default as playyt, resumeyt, skipyt, stopyt, } from './commands/musicyt.js';
 import { ocr } from './commands/ocr.js';
 import quote from './commands/quote.js';
-import weather from './commands/weather.js';
+import { weather } from './commands/weather.js';
 import { yt } from './commands/yt.js';
+import { log } from './mongodb.js';
 const commands = {
     help,
     hi,

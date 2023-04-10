@@ -36,6 +36,47 @@ const gif = {
   ],
 };
 
+const weather = {
+  name: 'weather',
+  type: 1,
+  description:
+    'Show the weather information and temperature of the location (default is Ho Chi Minh city)',
+  options: [
+    {
+      name: 'location',
+      description: 'The location to see the weather condition',
+      type: 3,
+      required: false,
+      choices: [
+        {
+          name: 'Binh Duong',
+          value: 'Binh Duong',
+        },
+        {
+          name: 'Ho Chi Minh',
+          value: 'Ho Chi Minh',
+        },
+      ],
+    },
+    {
+      name: 'mode',
+      description: 'Choose current weather or forecast mode',
+      type: 3,
+      required: false,
+      choices: [
+        {
+          name: 'Current',
+          value: 'weather',
+        },
+        {
+          name: 'Forecast',
+          value: 'forecast',
+        },
+      ],
+    },
+  ],
+};
+
 const music = {
   name: 'music',
   type: 1,
@@ -219,8 +260,9 @@ async function post(json: any) {
   console.log(data);
 }
 
-async function del(json: any) {
-  const res = await axios.delete(url, json);
+async function del(id: string) {
+  const delUrl = url + '/' + id;
+  const res = await axios.delete(delUrl);
   let data = res.data;
   console.log(data);
 }
@@ -243,6 +285,5 @@ export async function createSlashCommand() {
   // await post(stop);
   // await post(gpt);
   // await post(ocr);
+  // await post(weather);
 }
-
-// await createSlashCommand();

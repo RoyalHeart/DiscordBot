@@ -40,7 +40,7 @@ async function getChatGPTResponse(query: string): Promise<string> {
     const content = response.data.choices[0].message.content;
     return content;
   } catch (error) {
-    console.log('> error', error);
+    console.log('> error: ', error);
     return 'Can not call ChatGPT now, please try again later.';
   }
 }

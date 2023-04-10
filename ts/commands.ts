@@ -17,9 +17,9 @@ export default async function (msg: Message) {
       try {
         log(msg.member?.displayName as string, command.substring(1));
       } catch (error) {
-        console.log('> error', error);
+        console.log('> error: ', error);
       }
-      console.log(msg.content);
+      console.log('> command', msg.content);
       if (command.substring(1) in commands) {
         (commands as any)[command.substring(1)](msg, tokens);
       }

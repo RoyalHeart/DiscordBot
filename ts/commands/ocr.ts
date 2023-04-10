@@ -17,7 +17,7 @@ export async function ocr(interaction: ChatInputCommandInteraction) {
   try {
     language = interaction.options.get('language')!.value as string;
   } catch (error) {
-    console.log('> error', error);
+    console.log('> error: ', error);
   }
   console.log(image);
   const imageUrl = image?.attachment?.url as string;

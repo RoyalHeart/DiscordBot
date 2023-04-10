@@ -13,7 +13,7 @@ export async function connectMongodb() {
         console.log('> connecting to MongoDB');
         await client.connect();
         const db = client.db('discord');
-        const collection = db.collection('log');
+        const collection = db.collection('interaction_log');
         logCollection = collection;
         console.log(`> connected to mongodb, database: ${db.databaseName}, collection: ${collection.collectionName}`);
     }

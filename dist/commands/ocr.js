@@ -16,7 +16,7 @@ export async function ocr(interaction) {
         language = interaction.options.get('language').value;
     }
     catch (error) {
-        console.log('> error', error);
+        console.log('> error: ', error);
     }
     console.log(image);
     const imageUrl = image?.attachment?.url;
