@@ -331,7 +331,6 @@ async function getUrlFromQuery(query) {
     return url;
 }
 function createSong(songInfo) {
-    console.log(songInfo.formats);
     const stream = () => {
         if (songInfo.formats[0].isLive) {
             const format = ytdl.chooseFormat(songInfo.formats, {
@@ -345,7 +344,8 @@ function createSong(songInfo) {
                 filter: 'audioonly',
                 highWaterMark: 1 << 30,
                 liveBuffer: 20000,
-                quality: 'lowestaudio',
+                quality: 'highestaudio',
+                // quality: 'lowestaudio',
                 dlChunkSize: 0, //disabling chunking is recommended in discord bot
             });
     };
