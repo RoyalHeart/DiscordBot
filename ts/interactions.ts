@@ -1,5 +1,6 @@
 import {CacheType, Interaction} from 'discord.js';
-import crypto from './commands/crypto.js';
+import {log} from './mongodb.js';
+import {crypto} from './commands/crypto.js';
 import {gif} from './commands/gif.js';
 import gpt from './commands/gpt.js';
 import {help} from './commands/help.js';
@@ -51,6 +52,10 @@ export default async function interactionHandler(
     `[${interaction.guild?.name}] ${interaction.user.username}: ${interaction.commandName}`
   );
   if (interaction.commandName in commands) {
+    log(
+      `[${interaction.guild?.name}] ${interaction.user.username}`,
+      interaction.commandName
+    );
     const command = interaction.commandName;
     (commands as any)[command](interaction);
   }

@@ -9,22 +9,24 @@ export default async function (
   tokens: any
 ) {
   let location = 'Binh Duong';
-  let weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${openweatherApiKey}`;
-  let forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?id=1566083&appid=${openweatherApiKey}}`;
-  let response = (
+  const message = await getWeather(location);
+  msg.channel.send(message);
+}
+
+async function getWeather(location?: string): Promise<string> {
+  const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${openweatherApiKey}`;
+  const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?id=1566083&appid=${openweatherApiKey}}`;
+  const response = (
     await axios.get(weatherUrl, {headers: {'Content-Type': 'application/json'}})
   ).data;
   console.log(response);
-  let temp = response.main['temp'];
-  temp /= 10;
-  let weather = response.weather[0]['main'];
-  let description = response.weather[0]['description'];
-  let time = timeConverter(response['dt']);
-  msg.channel.send(
-    `Location: ${location}, Temp: ${temp}, weather: ${weather}, description: ${description}, Time: ${time}`
-  );
+  const temp = (response.main['temp'] /= 10);
+  const weather = response.weather[0]['main'];
+  const description = response.weather[0]['description'];
+  const time = timeConverter(response['dt']);
+  const message = `Location: ${location}, Temp: ${temp}, weather: ${weather}, description: ${description}, Time: ${time}`;
+  return message;
 }
-
 function timeConverter(UNIX_timestamp: number) {
   var a = new Date(UNIX_timestamp * 1000);
   var months = [

@@ -2,6 +2,7 @@ import { Client, Events, GatewayIntentBits, IntentsBitField } from 'discord.js';
 import * as dotenv from 'dotenv';
 import commandHandler from './commands.js';
 import interactionHandler from './interactions.js';
+import { connectMongodb } from './mongodb.js';
 import { createSlashCommand } from './slash_commands.js';
 // import {start} from 'repl';
 dotenv.config();
@@ -25,7 +26,7 @@ export default async function deploy() {
         });
         client.on(Events.MessageCreate, commandHandler);
         client.on(Events.InteractionCreate, interactionHandler);
-        // await connectMongodb();
+        await connectMongodb();
         await createSlashCommand();
         // await test();
         console.log('> deployed');

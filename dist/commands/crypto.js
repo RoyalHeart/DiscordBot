@@ -15,6 +15,11 @@ export default async function (msg, tokens) {
         msg.channel.send(message);
     }
 }
+export async function crypto(interaction) {
+    await interaction.deferReply();
+    const message = (await getLatest10Crypto());
+    interaction.reply(message);
+}
 async function getLatest10Crypto() {
     try {
         const response = await axios.get(COIN_MARKET_CAP_URL, {
@@ -39,6 +44,7 @@ async function getLatest10Crypto() {
     }
     catch (error) {
         console.log(error);
+        return '> error, please try again';
     }
 }
 export async function test() {

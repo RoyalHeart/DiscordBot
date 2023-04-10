@@ -16,7 +16,7 @@ export async function ocr(interaction) {
         language = interaction.options.get('language').value;
     }
     catch (error) {
-        console.log('> Error', error);
+        console.log('> error', error);
     }
     console.log(image);
     const imageUrl = image?.attachment?.url;
@@ -48,7 +48,7 @@ async function getOcrText(imageUrl, language) {
         return result;
     }
     catch (error) {
-        console.log('> Error:', error);
+        console.log('> error:', error);
         return 'Error';
     }
 }

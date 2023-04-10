@@ -130,12 +130,12 @@ export default async function playyt(interaction) {
                 }
             }
             catch (error) {
-                console.log('> Error: ' + error);
+                console.log('> error: ' + error);
             }
         });
     }
     catch (error) {
-        console.log('> Error: ' + error);
+        console.log('> error: ' + error);
     }
 }
 export async function loopyt(interaction) {

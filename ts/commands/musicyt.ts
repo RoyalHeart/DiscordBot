@@ -146,11 +146,11 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
           }
         }
       } catch (error) {
-        console.log('> Error: ' + error);
+        console.log('> error: ' + error);
       }
     });
   } catch (error) {
-    console.log('> Error: ' + error);
+    console.log('> error: ' + error);
   }
 }
 

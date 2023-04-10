@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {ChannelType, Message} from 'discord.js';
+import {ChannelType, ChatInputCommandInteraction, Message} from 'discord.js';
 import * as dotenv from 'dotenv';
 dotenv.config();
 const coinMarketCapApiKey = process.env.COIN_MARKET_CAP_API_KEY;
@@ -17,7 +17,13 @@ export default async function (msg: Message, tokens: string[]) {
   }
 }
 
-async function getLatest10Crypto() {
+export async function crypto(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
+  const message = (await getLatest10Crypto()) as string;
+  interaction.followUp(message);
+}
+
+async function getLatest10Crypto(): Promise<string> {
   try {
     const response = await axios.get(COIN_MARKET_CAP_URL, {
       headers: {
@@ -41,6 +47,7 @@ async function getLatest10Crypto() {
     return message;
   } catch (error) {
     console.log(error);
+    return '> error, please try again';
   }
 }
 export async function test() {

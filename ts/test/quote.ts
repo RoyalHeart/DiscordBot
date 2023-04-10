@@ -1,1 +1,1 @@
-import {getRandomQuote} from '../commands/quote.js';
+import * as quoteJs from '../commands/quote.js';

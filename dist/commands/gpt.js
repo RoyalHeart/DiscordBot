@@ -28,7 +28,7 @@ async function getChatGPTResponse(query) {
         return content;
     }
     catch (error) {
-        console.log('> Error', error);
+        console.log('> error', error);
         return 'Can not call ChatGPT now, please try again later.';
     }
 }

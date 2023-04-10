@@ -27,7 +27,7 @@ export default async function deploy() {
     });
     client.on(Events.MessageCreate, commandHandler);
     client.on(Events.InteractionCreate, interactionHandler);
-    // await connectMongodb();
+    await connectMongodb();
     await createSlashCommand();
     // await test();
     console.log('> deployed');

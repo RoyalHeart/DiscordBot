@@ -13,6 +13,6 @@
     "strictFunctionTypes": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["./src/**/*", "ts/index.ts", "ts/commands.ts"],
+  "include": ["./src/**/*", "ts/index.ts", "ts/commands.ts", "ts/**/*"],
   "exclude": ["./src/**/*.spec.ts"]
 }

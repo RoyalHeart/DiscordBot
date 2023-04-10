@@ -11,8 +11,13 @@ export default async function (msg) {
     const tokens = msg.content.split(' ');
     const command = tokens.shift(); // remove first token from tokens
     if (command) {
-        log(msg.member?.displayName, msg.content);
         if (command.charAt(0) === '!') {
+            try {
+                log(msg.member?.displayName, command.substring(1));
+            }
+            catch (error) {
+                console.log('> error', error);
+            }
             console.log(msg.content);
             if (command.substring(1) in commands) {
                 commands[command.substring(1)](msg, tokens);
