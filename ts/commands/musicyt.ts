@@ -8,18 +8,136 @@ import {
   joinVoiceChannel,
 } from '@discordjs/voice';
 import {
+  APIEmbed,
+  ActionRowBuilder,
   ChannelType,
   ChatInputCommandInteraction,
+  ComponentBuilder,
+  EmbedBuilder,
   Guild,
   GuildMember,
+  InteractionReplyOptions,
+  Message,
+  MessageEditOptions,
+  MessagePayload,
+  MessagePayloadOption,
+  ModalBuilder,
+  ModalSubmitInteraction,
   NewsChannel,
   TextChannel,
+  TextInputBuilder,
   VoiceBasedChannel,
 } from 'discord.js';
 import ytdl, {videoFormat} from 'ytdl-core';
 import {getYoutubeVideoUrl} from './yt.js';
+const COMPONENT_PLAYING = [
+  {
+    type: 1,
+    components: [
+      {
+        type: 2,
+        label: 'Add',
+        style: 1,
+        custom_id: 'playyt',
+      },
+      {
+        type: 2,
+        label: 'Pause',
+        style: 2,
+        custom_id: 'pauseyt',
+      },
+      {
+        type: 2,
+        label: 'Skip',
+        style: 3,
+        custom_id: 'skipyt',
+      },
+      {
+        type: 2,
+        label: 'Stop',
+        style: 4,
+        custom_id: 'stopyt',
+      },
+    ],
+  },
+  {
+    type: 1,
+    components: [
+      {
+        type: 3,
+        custom_id: 'audio',
+        options: [
+          {
+            label: 'Highest audio',
+            value: 'highestaudio',
+            description: 'Choose highest audio quality',
+          },
+          {
+            label: 'Lowest audio',
+            value: 'lowestaudio',
+            description: 'Choose lowest audio quality',
+          },
+        ],
+      },
+    ],
+  },
+];
+
+const COMPONENT_PAUSE = [
+  {
+    type: 1,
+    components: [
+      {
+        type: 2,
+        label: 'Add',
+        style: 1,
+        custom_id: 'playyt',
+      },
+      {
+        type: 2,
+        label: 'Resume',
+        style: 2,
+        custom_id: 'resume',
+      },
+      {
+        type: 2,
+        label: 'Skip',
+        style: 3,
+        custom_id: 'skipyt',
+      },
+      {
+        type: 2,
+        label: 'Stop',
+        style: 4,
+        custom_id: 'stopyt',
+      },
+    ],
+  },
+  {
+    type: 1,
+    components: [
+      {
+        type: 3,
+        custom_id: 'audio',
+        options: [
+          {
+            label: 'Highest audio',
+            value: 'highestaudio',
+            description: 'Choose highest audio quality',
+          },
+          {
+            label: 'Lowest audio',
+            value: 'lowestaudio',
+            description: 'Choose lowest audio quality',
+          },
+        ],
+      },
+    ],
+  },
+];
 
 let queue = new Map<string, ServerQueue>();
+let messagesQueue = new Map<string, Message>();
 export default async function playyt(interaction: ChatInputCommandInteraction) {
   if (!(interaction.channel?.type === ChannelType.GuildText)) {
     return interaction.reply({
@@ -42,19 +160,23 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
       ephemeral: true,
     });
   }
-  await interaction.deferReply();
   const channel = interaction.channel;
   var server: ServerQueue;
   var song: Song;
   try {
-    const query = interaction.options.get('query')!.value as string;
-    console.log('> Query:', query);
-    const url = await getUrlFromQuery(query);
-    const songInfo = await ytdl.getInfo(url);
-    song = createSong(songInfo);
+    const user = interaction.member.user;
     const voiceChannel = interaction.member.voice.channel;
     const guildId: string = interaction.guild.id || '';
+    const userId = user.id;
+    const userImageUrl = `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}`;
+    const userName = user.username;
     if (!queue.get(guildId)) {
+      await interaction.deferReply();
+      const query = interaction.options.get('query')!.value as string;
+      console.log('> Query:', query);
+      const url = await getUrlFromQuery(query);
+      const songInfo = await ytdl.getInfo(url);
+      song = createSong(songInfo);
       const player = createAudioPlayer({
         behaviors: {
           maxMissedFrames: 20,
@@ -75,14 +197,35 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
           songs: [song],
           playing: true,
           isLoop: false,
+          message: undefined,
         };
         server = queueContruct;
         queue.set(guildId, queueContruct);
+        var embed = new EmbedBuilder()
+          .setColor(0xe76680)
+          .setAuthor({
+            name: userName,
+            iconURL: userImageUrl,
+            url: `https://discord.com/users/${userId}`,
+          })
+          // .setDescription()
+          // .setThumbnail(song.songInfo.videoDetails.thumbnails[0].url)
+          .setTitle(song.title)
+          .setURL(song.url)
+          .setImage(song.songInfo.videoDetails.thumbnails[0].url)
+          .setTimestamp()
+          .setFooter({
+            text: 'Source: youtube.com',
+          });
         connection.subscribe(player);
         player.play(song.resource);
-        await interaction.followUp({
-          content: `> Playing **${song.title}**`,
-        });
+        var newMessage: MessagePayloadOption = {
+          content: `> Playing from Youtube`,
+          embeds: [embed],
+          components: COMPONENT_PLAYING,
+        };
+        var message = await interaction.editReply(newMessage);
+        messagesQueue.set(guildId, message);
       } catch (err) {
         console.log(err);
         queue.delete(guildId);
@@ -90,16 +233,19 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
         return interaction.channel!.send(err);
       }
     } else {
-      const serverQueue = queue.get(guildId);
-      server = serverQueue as ServerQueue;
-      serverQueue!.songs.push(song);
-      if (queue.get(guildId)!.player.state.status === 'idle') {
-        queue.get(guildId)!.player.play(song.resource);
-        return interaction.channel.send(`> Playing **${song.title}**`);
-      }
-      await interaction.followUp(`> Adding ${song.title} to queue`);
-      await interaction.deleteReply();
-      return interaction.channel.send(`> Add **${song.title}** to the queue!`);
+      server = queue.get(guildId)!;
+      var modal = new ModalBuilder()
+        .setTitle('Add song URL or name')
+        .setCustomId('addyt')
+        .setComponents(
+          new ActionRowBuilder<TextInputBuilder>().setComponents(
+            new TextInputBuilder()
+              .setLabel('Song query')
+              .setCustomId('query')
+              .setStyle(1)
+          )
+        );
+      return interaction.showModal(modal);
     }
 
     server.player.on(AudioPlayerStatus.Buffering, async (e: any) => {
@@ -151,6 +297,81 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
     });
   } catch (error) {
     console.log('> error: ' + error);
+  }
+}
+
+export async function addyt(interaction: ModalSubmitInteraction) {
+  if (!(interaction.channel!.type === ChannelType.GuildText)) {
+    return interaction.reply({
+      content: 'You are not in a channel!',
+      ephemeral: true,
+    });
+  }
+  if (!(interaction.guild instanceof Guild)) {
+    return interaction.reply({
+      content: 'You are not in a guild channel!',
+      ephemeral: true,
+    });
+  }
+  if (
+    !(interaction.member instanceof GuildMember) ||
+    !interaction.member.voice.channel
+  ) {
+    return interaction.reply({
+      content: 'You are not in a voice channel!',
+      ephemeral: true,
+    });
+  }
+  try {
+    await interaction.deferReply();
+    const guildId = interaction.guild.id;
+    const server = queue.get(guildId);
+    const query = interaction.fields.fields.get('query')!.value as string;
+    console.log('> Query:', query);
+    const url = await getUrlFromQuery(query);
+    const songInfo = await ytdl.getInfo(url);
+    var song = createSong(songInfo);
+    const user = interaction.member.user;
+    const voiceChannel = interaction.member.voice.channel;
+    const userId = user.id;
+    const userImageUrl = `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}`;
+    const userName = user.username;
+    if (!server) {
+      return interaction.reply('Please run /playyt first');
+    } else {
+      server.songs.push(song);
+      let embed = new EmbedBuilder()
+        .setColor(0xe76680)
+        .setAuthor({
+          name: userName,
+          iconURL: userImageUrl,
+          url: `https://discord.com/users/${userId}`,
+        })
+        // .setDescription()
+        // .setThumbnail(song.songInfo.videoDetails.thumbnails[0].url)
+        .setTitle(server.songs[0].title)
+        .setURL(server.songs[0].url)
+        .setImage(server.songs[0].songInfo.videoDetails.thumbnails[0].url)
+        .setTimestamp()
+        .setFooter({
+          text: 'Source: youtube.com',
+        })
+        .setFields({
+          name: `Add`,
+          value: `**${song.title}**`,
+        });
+      var message = messagesQueue.get(guildId)!;
+      await message.edit({
+        content: `> Playing from Youtube`,
+        embeds: [embed],
+        components: COMPONENT_PLAYING,
+      });
+      await interaction.followUp(`> Adding ${song.title} to queue`);
+      await interaction.deleteReply();
+    }
+  } catch (error) {
+    console.log('> error: ', error);
+    interaction.channel!.send('Error no server found');
   }
 }
 
@@ -264,14 +485,19 @@ export async function pauseyt(interaction: ChatInputCommandInteraction) {
     });
   }
   const channel = interaction.channel;
-  const guildId = interaction.guild.id;
-  const server = queue.get(guildId);
-  server!.player.pause();
-  interaction.reply({content: `> Pausing`});
-  setTimeout(async () => {
-    await interaction.deleteReply();
-  }, 2000);
-  channel.send(`> Pausing`);
+  try {
+    const guildId = interaction.guild.id;
+    const server = queue.get(guildId);
+    server!.player.pause();
+    interaction.reply({content: `> Pausing`});
+    setTimeout(async () => {
+      await interaction.deleteReply();
+    }, 2000);
+    channel.send(`> Pausing`);
+  } catch (error) {
+    console.log('> error: ', error);
+    channel.send(`Error`);
+  }
 }
 
 export function resumeyt(interaction: ChatInputCommandInteraction) {
@@ -355,6 +581,7 @@ interface ServerQueue {
   songs: Array<Song>;
   playing: true;
   isLoop: boolean | null;
+  message?: Message;
 }
 
 function isUrl(url: string): boolean {
@@ -386,10 +613,11 @@ function createSong(songInfo: ytdl.videoInfo): Song {
       return ytdl.downloadFromInfo(songInfo, {
         filter: 'audioonly',
         highWaterMark: 1 << 30,
-        liveBuffer: 20000,
+        liveBuffer: 10000,
         quality: 'highestaudio',
         // quality: 'lowestaudio',
-        dlChunkSize: 0, //disabling chunking is recommended in discord bot
+        dlChunkSize: 1 << 30, //disabling chunking is recommended in discord bot
+        // dlChunkSize: 0, //disabling chunking is recommended in discord bot
       });
   };
   // ytdl(songInfo.videoDetails.video_url, {
@@ -402,11 +630,7 @@ function createSong(songInfo: ytdl.videoInfo): Song {
   //   format: {itag: 94} as videoFormat,
   // });
 
-  const resource = createAudioResource(stream(), {
-    metadata: {
-      title: songInfo.videoDetails.title,
-    },
-  });
+  const resource = createAudioResource(stream());
 
   const song: Song = {
     resource: resource,

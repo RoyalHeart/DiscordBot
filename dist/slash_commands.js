@@ -159,6 +159,11 @@ const playyt = {
         },
     ],
 };
+const addyt = {
+    name: 'addyt',
+    description: ' song',
+    type: 1,
+};
 const loopyt = {
     name: 'loopyt',
     description: 'Loop current song',
@@ -264,6 +269,7 @@ export async function createSlashCommand() {
     // await post(hi);
     // await post(crypto);
     // await post(playyt);
+    // await post(addyt);
     // await post(yt);
     // await post(skipyt);
     // await post(pauseyt);

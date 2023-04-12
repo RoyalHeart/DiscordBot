@@ -10,6 +10,7 @@ import {
   default as stop,
 } from './commands/music.js';
 import {
+  addyt,
   loopyt,
   pauseyt,
   default as playyt,
@@ -33,6 +34,7 @@ const commands = {
   play,
   stop,
   skip,
+  addyt,
   playyt,
   loopyt,
   skipyt,
@@ -45,13 +47,36 @@ const commands = {
 export default async function interactionHandler(
   interaction: Interaction<CacheType>
 ) {
-  if (!interaction.isChatInputCommand()) {
+  if (interaction.isButton()) {
+    console.log(
+      `Button [${interaction.guild?.name}] ${interaction.user.username}: ${interaction.customId}`
+    );
+    if (interaction.customId in commands) {
+      log(
+        `[${interaction.guild?.name}] ${interaction.user.username}`,
+        interaction.customId
+      );
+      const command = interaction.customId;
+      (commands as any)[command](interaction);
+    }
+  } else if (interaction.isModalSubmit()) {
+    console.log(
+      `Modal [${interaction.guild?.name}] ${interaction.user.username}: ${interaction.customId}`
+    );
+    if (interaction.customId in commands) {
+      log(
+        `[${interaction.guild?.name}] ${interaction.user.username}`,
+        interaction.customId
+      );
+      const command = interaction.customId;
+      (commands as any)[command](interaction);
+    }
+  } else if (!interaction.isChatInputCommand()) {
     return;
-  }
-  console.log(
-    `[${interaction.guild?.name}] ${interaction.user.username}: ${interaction.commandName}`
-  );
-  if (interaction.commandName in commands) {
+  } else if (interaction.commandName in commands) {
+    console.log(
+      `Chat [${interaction.guild?.name}] ${interaction.user.username}: ${interaction.commandName}`
+    );
     log(
       `[${interaction.guild?.name}] ${interaction.user.username}`,
       interaction.commandName
