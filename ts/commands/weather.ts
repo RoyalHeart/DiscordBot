@@ -50,7 +50,7 @@ async function getCurrentWeather(location: string): Promise<string> {
     const weather = response.weather[0]['main'];
     const description = response.weather[0]['description'];
     const time = timeConverter(response['dt']);
-    const message = `Location: **${location}**, Temp: **${temp}°C**, weather: **${weather}**, description: **${description}**, Time: **${time}**`;
+    const message = `**${location}**, **${temp}°C**, **${weather}**, **${description}** at **${time}**`;
     return message;
   } catch (error) {
     console.log('> error: ', error);
@@ -66,8 +66,7 @@ async function getForecastWeather(location: string) {
         headers: {'Content-Type': 'application/json'},
       })
     ).data;
-    console.log(response);
-    var message = 'Forecast Rain: ';
+    var message = `Forecast Rain in ${location}: `;
     var haveRain = false;
     for (var index in response.list) {
       let forecast = response.list[index];
@@ -78,7 +77,7 @@ async function getForecastWeather(location: string) {
         const weather = mainWeather;
         const description = forecast.weather[0].description;
         const time = timeConverter(forecast.dt);
-        message += `\n-Location: **${location}**, Temp: **${temp}°C**, weather: **${weather}**, description: **${description}**, Time: **${time}**`;
+        message += `\n**${temp}°C**, **${weather}**, **${description}** at **${time}**`;
       }
     }
     if (!haveRain) {
@@ -114,8 +113,8 @@ function timeConverter(UNIX_timestamp: number) {
   var hourString = hour < 10 ? `0${hour}` : hour;
   var min = date.getMinutes();
   var minString = min < 10 ? `0${min}` : min;
-  var sec = date.getSeconds();
-  var secString = sec < 10 ? `0${sec}` : sec;
-  var time = `${day} ${month} ${year} ${hourString}:${minString}:${secString}`;
+  // var sec = date.getSeconds();
+  // var secString = sec < 10 ? `0${sec}` : sec;
+  var time = `${day} ${month} ${year} ${hourString}:${minString}`;
   return time;
 }
