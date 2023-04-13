@@ -71,7 +71,6 @@ async function getForecastWeather(location: string) {
     var haveRain = false;
     for (var index in response.list) {
       let forecast = response.list[index];
-      console.log(forecast);
       let mainWeather = forecast.weather[0].main;
       if (mainWeather === 'Rain') {
         haveRain = true;
