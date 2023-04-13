@@ -27,7 +27,7 @@
     "sodium-native": "^4.0.1",
     "tsc": "^2.0.4",
     "typescript": "^4.9.3",
-    "ytdl-core": "^4.10.0"
+    "ytdl-core": "^4.11.3"
   },
   "devDependencies": {
     "@types/node": "^18.11.10",

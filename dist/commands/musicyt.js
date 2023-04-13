@@ -68,7 +68,7 @@ const COMPONENT_PAUSE = [
                 type: 2,
                 label: 'Resume',
                 style: 2,
-                custom_id: 'resume',
+                custom_id: 'resumeyt',
             },
             {
                 type: 2,
@@ -102,6 +102,41 @@ const COMPONENT_PAUSE = [
                         description: 'Choose lowest audio quality',
                     },
                 ],
+            },
+        ],
+    },
+];
+const COMPONENT_STOP = [
+    {
+        type: 1,
+        components: [
+            {
+                type: 2,
+                label: 'Add',
+                style: 1,
+                custom_id: 'playyt',
+                disabled: true,
+            },
+            {
+                type: 2,
+                label: 'Pause',
+                style: 2,
+                custom_id: 'pauseyt',
+                disabled: true,
+            },
+            {
+                type: 2,
+                label: 'Skip',
+                style: 3,
+                custom_id: 'skipyt',
+                disabled: true,
+            },
+            {
+                type: 2,
+                label: 'Stop',
+                style: 4,
+                custom_id: 'stopyt',
+                disabled: true,
             },
         ],
     },
@@ -147,7 +182,7 @@ export default async function playyt(interaction) {
             song = createSong(songInfo);
             const player = createAudioPlayer({
                 behaviors: {
-                    maxMissedFrames: 20,
+                    maxMissedFrames: 10,
                 },
             });
             try {
@@ -177,29 +212,33 @@ export default async function playyt(interaction) {
                     url: `https://discord.com/users/${userId}`,
                 })
                     // .setDescription()
-                    // .setThumbnail(song.songInfo.videoDetails.thumbnails[0].url)
+                    // .setThumbnail(
+                    //   'https://media0.giphy.com/media/yFKokXsr5Bc6xVqpTt/giphy.gif'
+                    // )
+                    // .setThumbnail('https://i.makeagif.com/media/4-13-2023/GDRiMm.gif')
+                    .setThumbnail('http://172.26.32.1:5500/GDRiMm.gif')
                     .setTitle(song.title)
                     .setURL(song.url)
                     .setImage(song.songInfo.videoDetails.thumbnails[0].url)
                     .setTimestamp()
                     .setFooter({
-                    text: 'Source: youtube.com',
+                    text: `Source: ${server.songs[0].url}`,
                 });
                 connection.subscribe(player);
                 player.play(song.resource);
                 var newMessage = {
-                    content: `> Playing from Youtube`,
+                    content: `> Playing **${song.title}**`,
                     embeds: [embed],
                     components: COMPONENT_PLAYING,
                 };
                 var message = await interaction.editReply(newMessage);
                 messagesQueue.set(guildId, message);
             }
-            catch (err) {
-                console.log(err);
+            catch (error) {
+                console.log('> playyt error:', error);
                 queue.delete(guildId);
                 player.stop();
-                return interaction.channel.send(err);
+                return interaction.channel.send(error);
             }
         }
         else {
@@ -240,9 +279,29 @@ export default async function playyt(interaction) {
                     song = await nextRelatedSong;
                     server.songs.push(song);
                     console.log('> Song url:', song.url);
-                    await channel.send({
-                        content: `> Playing related song **${song.title}**`,
+                    var message = messagesQueue.get(guildId);
+                    var oldEmbed = message.embeds[0];
+                    var embed = new EmbedBuilder()
+                        .setColor(oldEmbed.color)
+                        .setAuthor(oldEmbed.author)
+                        .setThumbnail('https://media0.giphy.com/media/yFKokXsr5Bc6xVqpTt/giphy.gif')
+                        .setTitle(song.title)
+                        .setURL(song.url)
+                        .setImage(song.songInfo.videoDetails.thumbnails[0].url)
+                        .setTimestamp()
+                        .setFooter({
+                        text: `Source: ${server.songs[0].url}`,
+                    })
+                        .setFields(oldEmbed.fields);
+                    // await channel.send({
+                    //   content: `> Playing related song **${song.title}**`,
+                    // });
+                    message = await message.edit({
+                        content: `${message.content}\n> Playing related song **${song.title}**`,
+                        embeds: [embed],
+                        components: COMPONENT_PLAYING,
                     });
+                    messagesQueue.set(guildId, message);
                     server.player.play(song.resource);
                     // play next query song
                 }
@@ -259,12 +318,12 @@ export default async function playyt(interaction) {
                 }
             }
             catch (error) {
-                console.log('> error: ' + error);
+                console.log('> playyt error: ' + error);
             }
         });
     }
     catch (error) {
-        console.log('> error: ' + error);
+        console.log('> playyt error: ' + error);
     }
 }
 export async function addyt(interaction) {
@@ -296,48 +355,25 @@ export async function addyt(interaction) {
         const url = await getUrlFromQuery(query);
         const songInfo = await ytdl.getInfo(url);
         var song = createSong(songInfo);
-        const user = interaction.member.user;
-        const voiceChannel = interaction.member.voice.channel;
-        const userId = user.id;
-        const userImageUrl = `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}`;
-        const userName = user.username;
         if (!server) {
             return interaction.reply('Please run /playyt first');
         }
         else {
             server.songs.push(song);
-            let embed = new EmbedBuilder()
-                .setColor(0xe76680)
-                .setAuthor({
-                name: userName,
-                iconURL: userImageUrl,
-                url: `https://discord.com/users/${userId}`,
-            })
-                // .setDescription()
-                // .setThumbnail(song.songInfo.videoDetails.thumbnails[0].url)
-                .setTitle(server.songs[0].title)
-                .setURL(server.songs[0].url)
-                .setImage(server.songs[0].songInfo.videoDetails.thumbnails[0].url)
-                .setTimestamp()
-                .setFooter({
-                text: 'Source: youtube.com',
-            })
-                .setFields({
-                name: `Add`,
-                value: `**${song.title}**`,
-            });
             var message = messagesQueue.get(guildId);
-            await message.edit({
-                content: `> Playing from Youtube`,
+            let embed = message.embeds[0];
+            message = await message.edit({
+                content: `${message.content}\n> Add **${song.title}** to queue`,
                 embeds: [embed],
                 components: COMPONENT_PLAYING,
             });
+            messagesQueue.set(guildId, message);
             await interaction.followUp(`> Adding ${song.title} to queue`);
             await interaction.deleteReply();
         }
     }
     catch (error) {
-        console.log('> error: ', error);
+        console.log('> addyt error: ', error);
         interaction.channel.send('Error no server found');
     }
 }
@@ -404,18 +440,53 @@ export async function skipyt(interaction) {
     const song = server.songs.shift();
     const nextSong = server.songs[0];
     if (nextSong) {
-        channel.send({
-            content: `> Skip to **${nextSong.title}**`,
+        var message = messagesQueue.get(guildId);
+        var oldEmbed = message.embeds[0];
+        var embed = new EmbedBuilder()
+            .setColor(oldEmbed.color)
+            .setAuthor(oldEmbed.author)
+            .setThumbnail('https://media0.giphy.com/media/yFKokXsr5Bc6xVqpTt/giphy.gif')
+            .setTitle(nextSong.title)
+            .setURL(nextSong.url)
+            .setImage(nextSong.songInfo.videoDetails.thumbnails[0].url)
+            .setTimestamp()
+            .setFooter({
+            text: `Source: ${server.songs[0].url}`,
+        })
+            .setFields(oldEmbed.fields);
+        message = await message.edit({
+            content: `${message.content}`,
+            embeds: [embed],
+            components: COMPONENT_PLAYING,
         });
+        messagesQueue.set(guildId, message);
         return server.player.play(nextSong.resource);
     }
     else {
         if (song) {
+            // server!.player.play(song.resource);
             const nextSong = await getNextRelatedSong(song);
             server.songs.push(nextSong);
-            channel.send({
-                content: `> Skip to next related song **${nextSong.title}**`,
+            var message = messagesQueue.get(guildId);
+            var oldEmbed = message.embeds[0];
+            var embed = new EmbedBuilder()
+                .setColor(oldEmbed.color)
+                .setAuthor(oldEmbed.author)
+                .setThumbnail('https://media0.giphy.com/media/yFKokXsr5Bc6xVqpTt/giphy.gif')
+                .setTitle(nextSong.title)
+                .setURL(nextSong.url)
+                .setImage(nextSong.songInfo.videoDetails.thumbnails[0].url)
+                .setTimestamp()
+                .setFooter({
+                text: `Source: ${server.songs[0].url}`,
+            })
+                .setFields(oldEmbed.fields);
+            message = await message.edit({
+                content: `${message.content}\n> Skip to next related song **${nextSong.title}**`,
+                embeds: [embed],
+                components: COMPONENT_PLAYING,
             });
+            messagesQueue.set(guildId, message);
             server.player.play(nextSong.resource);
         }
         else {
@@ -447,17 +518,46 @@ export async function pauseyt(interaction) {
     }
     const channel = interaction.channel;
     try {
+        interaction.reply({ content: `> Pausing` });
         const guildId = interaction.guild.id;
         const server = queue.get(guildId);
+        const user = interaction.member.user;
+        const userId = user.id;
+        const userImageUrl = `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}`;
+        const userName = user.username;
+        if (!server) {
+            return interaction.reply('Please run /playyt first');
+        }
+        else {
+            let embed = new EmbedBuilder()
+                .setColor(0xe76680)
+                .setAuthor({
+                name: userName,
+                iconURL: userImageUrl,
+                url: `https://discord.com/users/${userId}`,
+            })
+                .setTitle(server.songs[0].title)
+                .setURL(server.songs[0].url)
+                .setImage(server.songs[0].songInfo.videoDetails.thumbnails[0].url)
+                .setTimestamp()
+                .setFooter({
+                text: `Source: ${server.songs[0].url}`,
+            });
+            var message = messagesQueue.get(guildId);
+            message = await message.edit({
+                content: `${message.content}`,
+                embeds: [embed],
+                components: COMPONENT_PAUSE,
+            });
+            messagesQueue.set(guildId, message);
+        }
         server.player.pause();
-        interaction.reply({ content: `> Pausing` });
         setTimeout(async () => {
             await interaction.deleteReply();
         }, 2000);
-        channel.send(`> Pausing`);
     }
     catch (error) {
-        console.log('> error: ', error);
+        console.log('> pauseyt error: ', error);
         channel.send(`Error`);
     }
 }
@@ -482,16 +582,53 @@ export function resumeyt(interaction) {
         });
     }
     const channel = interaction.channel;
-    const guildId = interaction.guild.id;
-    const server = queue.get(guildId);
-    server.player.unpause();
-    interaction.reply({ content: `> Resuming` });
-    setTimeout(async () => {
-        await interaction.deleteReply();
-    }, 2000);
-    channel.send({ content: `> Resume` });
+    try {
+        interaction.reply({ content: `> Resuming` });
+        const guildId = interaction.guild.id;
+        const server = queue.get(guildId);
+        const user = interaction.member.user;
+        const userId = user.id;
+        const userImageUrl = `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}`;
+        const userName = user.username;
+        if (!server) {
+            return interaction.reply('Please run /playyt first');
+        }
+        else {
+            let embed = new EmbedBuilder()
+                .setColor(0xe76680)
+                .setAuthor({
+                name: userName,
+                iconURL: userImageUrl,
+                url: `https://discord.com/users/${userId}`,
+            })
+                // .setDescription()
+                .setThumbnail('https://media0.giphy.com/media/yFKokXsr5Bc6xVqpTt/giphy.gif')
+                .setTitle(server.songs[0].title)
+                .setURL(server.songs[0].url)
+                .setImage(server.songs[0].songInfo.videoDetails.thumbnails[0].url)
+                .setTimestamp()
+                .setFooter({
+                text: `Source: ${server.songs[0].url}`,
+            });
+            var message = messagesQueue.get(guildId);
+            message.embeds.at(0)?.fields.push({ name: 'name', value: '' });
+            message.edit({
+                content: `> Playing`,
+                embeds: [embed],
+                components: COMPONENT_PLAYING,
+            });
+        }
+        server.player.unpause();
+        setTimeout(async () => {
+            await interaction.deleteReply();
+        }, 2000);
+    }
+    catch (error) {
+        console.log('> resumeyt error: ', error);
+        channel.send('Error');
+    }
 }
-export function stopyt(interaction) {
+export async function stopyt(interaction) {
     if (!(interaction.channel?.type === ChannelType.GuildText)) {
         return interaction.reply({
             content: 'You are not in a channel!',
@@ -512,17 +649,35 @@ export function stopyt(interaction) {
         });
     }
     const channel = interaction.channel;
-    const guildId = interaction.guild.id;
-    const server = queue.get(guildId);
-    server.player.pause();
-    server.connection.disconnect();
-    server.connection.destroy();
-    queue.delete(guildId);
-    interaction.reply({ content: `> Stoping...` });
-    setTimeout(async () => {
-        interaction.deleteReply();
-    }, 2000);
-    channel.send({ content: `> Stop` });
+    try {
+        interaction.reply({ content: `> Stoping...` });
+        const guildId = interaction.guild.id;
+        const server = queue.get(guildId);
+        if (server === undefined) {
+            return interaction.reply('Please run /playyt first');
+        }
+        else {
+            var message = messagesQueue.get(guildId);
+            let embed = message.embeds[0];
+            message = await message.edit({
+                content: `${message.content}`,
+                embeds: [embed],
+                components: COMPONENT_STOP,
+            });
+            messagesQueue.set(guildId, message);
+            server.player.pause();
+            server.connection.disconnect();
+            server.connection.destroy();
+            queue.delete(guildId);
+            setTimeout(async () => {
+                await interaction.deleteReply();
+            }, 2000);
+        }
+    }
+    catch (error) {
+        console.log('> stopyt error: ', error);
+        channel.send('Error');
+    }
 }
 function isUrl(url) {
     var expression = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi;
@@ -545,18 +700,16 @@ function createSong(songInfo) {
             const format = ytdl.chooseFormat(songInfo.formats, {
                 quality: [128, 127, 120, 96, 95, 94, 93],
             });
-            console.log(format);
             return format.url;
         }
         else
             return ytdl.downloadFromInfo(songInfo, {
                 filter: 'audioonly',
                 highWaterMark: 1 << 30,
-                liveBuffer: 10000,
+                liveBuffer: 20000,
                 quality: 'highestaudio',
-                // quality: 'lowestaudio',
-                dlChunkSize: 1 << 30, //disabling chunking is recommended in discord bot
-                // dlChunkSize: 0, //disabling chunking is recommended in discord bot
+                // dlChunkSize: 1 << 30, //disabling chunking is recommended in discord bot
+                dlChunkSize: 0, //disabling chunking is recommended in discord bot
             });
     };
     // ytdl(songInfo.videoDetails.video_url, {
