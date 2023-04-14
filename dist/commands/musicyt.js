@@ -141,8 +141,22 @@ const COMPONENT_STOP = [
         ],
     },
 ];
-let queue = new Map();
-let messagesQueue = new Map();
+const queue = new Map();
+const messagesQueue = new Map();
+const thumbnails = [
+    'https://media.tenor.com/UT8tOhIfbdUAAAAj/anime-daling-in-the-franxx.gif',
+    'https://media.tenor.com/11oLYghHHuwAAAAj/zero-two.gif',
+    'https://i.imgur.com/ZRFiXl6.gif',
+    'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMzI5MWM1NzY0NGNiMWVkNGZmMzE5NTQwNDVjYmI0NzIzMmMxYTUxOSZjdD1z/NyMaiJVuPmPKcYbbKd/giphy.gif',
+    'https://media.tenor.com/VWxUaV7juMQAAAAi/dramaturgy-vtuber.gif',
+    'https://i.pinimg.com/originals/b4/42/d2/b442d2586e90f1089259abafd70e4e44.gif',
+    'https://media.tenor.com/6BPGuIkBltsAAAAd/shylily-bustin.gif',
+    'https://i.kym-cdn.com/photos/images/newsfeed/002/283/729/b38.gif',
+    'https://media.tenor.com/C3oPvFXt82cAAAAd/shirakami-fubuki-hololive.gif',
+    'https://media.tenor.com/tp2px9Gxw5oAAAAd/naruto-dance-anime-dance.gif',
+    'https://media.tenor.com/P7QN5kqyiSQAAAAd/aharen-san-aharen-san-anime.gif',
+    'https://media.tenor.com/J2IiEb-2zYUAAAAC/aharen-aharen-russian-dance.gif',
+];
 export default async function playyt(interaction) {
     if (!(interaction.channel?.type === ChannelType.GuildText)) {
         return interaction.reply({
@@ -211,12 +225,7 @@ export default async function playyt(interaction) {
                     iconURL: userImageUrl,
                     url: `https://discord.com/users/${userId}`,
                 })
-                    // .setDescription()
-                    // .setThumbnail(
-                    //   'https://media0.giphy.com/media/yFKokXsr5Bc6xVqpTt/giphy.gif'
-                    // )
-                    // .setThumbnail('https://i.makeagif.com/media/4-13-2023/GDRiMm.gif')
-                    .setThumbnail('http://172.26.32.1:5500/GDRiMm.gif')
+                    .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
                     .setTitle(song.title)
                     .setURL(song.url)
                     .setImage(song.songInfo.videoDetails.thumbnails[0].url)
@@ -284,7 +293,7 @@ export default async function playyt(interaction) {
                     var embed = new EmbedBuilder()
                         .setColor(oldEmbed.color)
                         .setAuthor(oldEmbed.author)
-                        .setThumbnail('https://media0.giphy.com/media/yFKokXsr5Bc6xVqpTt/giphy.gif')
+                        .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
                         .setTitle(song.title)
                         .setURL(song.url)
                         .setImage(song.songInfo.videoDetails.thumbnails[0].url)
@@ -445,7 +454,7 @@ export async function skipyt(interaction) {
         var embed = new EmbedBuilder()
             .setColor(oldEmbed.color)
             .setAuthor(oldEmbed.author)
-            .setThumbnail('https://media0.giphy.com/media/yFKokXsr5Bc6xVqpTt/giphy.gif')
+            .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
             .setTitle(nextSong.title)
             .setURL(nextSong.url)
             .setImage(nextSong.songInfo.videoDetails.thumbnails[0].url)
@@ -472,7 +481,7 @@ export async function skipyt(interaction) {
             var embed = new EmbedBuilder()
                 .setColor(oldEmbed.color)
                 .setAuthor(oldEmbed.author)
-                .setThumbnail('https://media0.giphy.com/media/yFKokXsr5Bc6xVqpTt/giphy.gif')
+                .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
                 .setTitle(nextSong.title)
                 .setURL(nextSong.url)
                 .setImage(nextSong.songInfo.videoDetails.thumbnails[0].url)
@@ -602,7 +611,7 @@ export function resumeyt(interaction) {
                 url: `https://discord.com/users/${userId}`,
             })
                 // .setDescription()
-                .setThumbnail('https://media0.giphy.com/media/yFKokXsr5Bc6xVqpTt/giphy.gif')
+                .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
                 .setTitle(server.songs[0].title)
                 .setURL(server.songs[0].url)
                 .setImage(server.songs[0].songInfo.videoDetails.thumbnails[0].url)
