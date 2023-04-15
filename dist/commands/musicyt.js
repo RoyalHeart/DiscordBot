@@ -39,27 +39,6 @@ const COMPONENT_PLAYING = [
             },
         ],
     },
-    // {
-    //   type: 1,
-    //   components: [
-    //     {
-    //       type: 3,
-    //       custom_id: 'audio',
-    //       options: [
-    //         {
-    //           label: 'Highest audio',
-    //           value: 'highestaudio',
-    //           description: 'Choose highest audio quality',
-    //         },
-    //         {
-    //           label: 'Lowest audio',
-    //           value: 'lowestaudio',
-    //           description: 'Choose lowest audio quality',
-    //         },
-    //       ],
-    //     },
-    //   ],
-    // },
 ];
 const COMPONENT_PAUSE = [
     {
@@ -97,27 +76,6 @@ const COMPONENT_PAUSE = [
             },
         ],
     },
-    // {
-    //   type: 1,
-    //   components: [
-    //     {
-    //       type: 3,
-    //       custom_id: 'audio',
-    //       options: [
-    //         {
-    //           label: 'Highest audio',
-    //           value: 'highestaudio',
-    //           description: 'Choose highest audio quality',
-    //         },
-    //         {
-    //           label: 'Lowest audio',
-    //           value: 'lowestaudio',
-    //           description: 'Choose lowest audio quality',
-    //         },
-    //       ],
-    //     },
-    //   ],
-    // },
 ];
 const COMPONENT_STOP = [
     {
@@ -170,6 +128,8 @@ const thumbnails = [
     'https://media.tenor.com/P7QN5kqyiSQAAAAd/aharen-san-aharen-san-anime.gif',
     'https://media.tenor.com/J2IiEb-2zYUAAAAC/aharen-aharen-russian-dance.gif',
     'https://cdn.donmai.us/original/0e/f9/__neuro_sama_indie_virtual_youtuber_and_1_more_drawn_by_rune_dualhart__0ef91baacc951bd55591930c5bf60ebd.gif',
+    'https://media.tenor.com/L6Q_AncviC4AAAAC/dj-chubby.gif',
+    'https://i.pinimg.com/originals/eb/2a/d1/eb2ad1c402d4c7d5755e88891a404018.gif',
 ];
 export default async function playyt(interaction) {
     if (!(interaction.channel?.type === ChannelType.GuildText)) {
@@ -242,11 +202,12 @@ export default async function playyt(interaction) {
                     .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
                     .setTitle(song.title)
                     .setURL(song.url)
-                    .setImage(song.songInfo.videoDetails.thumbnails[0].url)
+                    .setImage(song.songInfo.videoDetails.thumbnails.pop().url)
                     .setTimestamp()
                     .setFooter({
                     text: `Source: ${server.songs[0].url}`,
                 });
+                console.log(server.songs[0].songInfo.videoDetails.thumbnails);
                 connection.subscribe(player);
                 player.play(song.resource);
                 var newMessage = {
@@ -310,7 +271,7 @@ export default async function playyt(interaction) {
                         .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
                         .setTitle(song.title)
                         .setURL(song.url)
-                        .setImage(song.songInfo.videoDetails.thumbnails[0].url)
+                        .setImage(song.songInfo.videoDetails.thumbnails.pop().url)
                         .setTimestamp()
                         .setFooter({
                         text: `Source: ${server.songs[0].url}`,
@@ -471,7 +432,7 @@ export async function skipyt(interaction) {
             .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
             .setTitle(nextSong.title)
             .setURL(nextSong.url)
-            .setImage(nextSong.songInfo.videoDetails.thumbnails[0].url)
+            .setImage(nextSong.songInfo.videoDetails.thumbnails.pop().url)
             .setTimestamp()
             .setFooter({
             text: `Source: ${server.songs[0].url}`,
@@ -498,7 +459,7 @@ export async function skipyt(interaction) {
                 .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
                 .setTitle(nextSong.title)
                 .setURL(nextSong.url)
-                .setImage(nextSong.songInfo.videoDetails.thumbnails[0].url)
+                .setImage(nextSong.songInfo.videoDetails.thumbnails.pop().url)
                 .setTimestamp()
                 .setFooter({
                 text: `Source: ${server.songs[0].url}`,
@@ -561,7 +522,7 @@ export async function pauseyt(interaction) {
             })
                 .setTitle(server.songs[0].title)
                 .setURL(server.songs[0].url)
-                .setImage(server.songs[0].songInfo.videoDetails.thumbnails[0].url)
+                .setImage(server.songs[0].songInfo.videoDetails.thumbnails.pop().url)
                 .setTimestamp()
                 .setFooter({
                 text: `Source: ${server.songs[0].url}`,
@@ -628,7 +589,7 @@ export function resumeyt(interaction) {
                 .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
                 .setTitle(server.songs[0].title)
                 .setURL(server.songs[0].url)
-                .setImage(server.songs[0].songInfo.videoDetails.thumbnails[0].url)
+                .setImage(server.songs[0].songInfo.videoDetails.thumbnails.pop().url)
                 .setTimestamp()
                 .setFooter({
                 text: `Source: ${server.songs[0].url}`,
