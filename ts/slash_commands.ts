@@ -176,6 +176,11 @@ const loopyt = {
   description: 'Loop current song',
   type: 1,
 };
+const downloadyt = {
+  name: 'downloadyt',
+  description: 'Download current song',
+  type: 1,
+};
 const skipyt = {
   name: 'skipyt',
   description: 'Skip to the next song',
@@ -292,4 +297,5 @@ export async function createSlashCommand() {
   // await post(gpt);
   // await post(ocr);
   // await post(weather);
+  // await post(downloadyt);
 }

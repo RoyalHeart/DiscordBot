@@ -14,11 +14,14 @@ const CHAT_GPT_CHAT_URL = 'https://api.openai.com/v1/chat/completions';
 export default async function gpt(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
   const query = interaction.options.get('query')?.value as string;
+  const content = getChatGPTResponse(query);
   await interaction.followUp('Ask: ' + query);
-  interaction.followUp('ChatGPT is thinking...').then(async (message) => {
-    const content = await getChatGPTResponse(query);
-    message.edit('ChatGPT: ' + content);
+  const message = await interaction.followUp({
+    content: 'ChatGPT is thinking...',
   });
+  interaction
+    .followUp({content: `'ChatGPT: ' + ${await content}`})
+    .then(() => message.delete());
 }
 
 async function getChatGPTResponse(query: string): Promise<string> {

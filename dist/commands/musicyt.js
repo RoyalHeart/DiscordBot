@@ -1,5 +1,6 @@
 import { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel, } from '@discordjs/voice';
 import { ActionRowBuilder, ChannelType, EmbedBuilder, Guild, GuildMember, ModalBuilder, TextInputBuilder, } from 'discord.js';
+import fs from 'fs';
 import ytdl from 'ytdl-core';
 import { getYoutubeVideoUrl } from './yt.js';
 const COMPONENT_PLAYING = [
@@ -30,29 +31,35 @@ const COMPONENT_PLAYING = [
                 style: 4,
                 custom_id: 'stopyt',
             },
-        ],
-    },
-    {
-        type: 1,
-        components: [
             {
-                type: 3,
-                custom_id: 'audio',
-                options: [
-                    {
-                        label: 'Highest audio',
-                        value: 'highestaudio',
-                        description: 'Choose highest audio quality',
-                    },
-                    {
-                        label: 'Lowest audio',
-                        value: 'lowestaudio',
-                        description: 'Choose lowest audio quality',
-                    },
-                ],
+                type: 2,
+                label: 'Download',
+                style: 1,
+                custom_id: 'downloadyt',
             },
         ],
     },
+    // {
+    //   type: 1,
+    //   components: [
+    //     {
+    //       type: 3,
+    //       custom_id: 'audio',
+    //       options: [
+    //         {
+    //           label: 'Highest audio',
+    //           value: 'highestaudio',
+    //           description: 'Choose highest audio quality',
+    //         },
+    //         {
+    //           label: 'Lowest audio',
+    //           value: 'lowestaudio',
+    //           description: 'Choose lowest audio quality',
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // },
 ];
 const COMPONENT_PAUSE = [
     {
@@ -82,29 +89,35 @@ const COMPONENT_PAUSE = [
                 style: 4,
                 custom_id: 'stopyt',
             },
-        ],
-    },
-    {
-        type: 1,
-        components: [
             {
-                type: 3,
-                custom_id: 'audio',
-                options: [
-                    {
-                        label: 'Highest audio',
-                        value: 'highestaudio',
-                        description: 'Choose highest audio quality',
-                    },
-                    {
-                        label: 'Lowest audio',
-                        value: 'lowestaudio',
-                        description: 'Choose lowest audio quality',
-                    },
-                ],
+                type: 2,
+                label: 'Download',
+                style: 1,
+                custom_id: 'downloadyt',
             },
         ],
     },
+    // {
+    //   type: 1,
+    //   components: [
+    //     {
+    //       type: 3,
+    //       custom_id: 'audio',
+    //       options: [
+    //         {
+    //           label: 'Highest audio',
+    //           value: 'highestaudio',
+    //           description: 'Choose highest audio quality',
+    //         },
+    //         {
+    //           label: 'Lowest audio',
+    //           value: 'lowestaudio',
+    //           description: 'Choose lowest audio quality',
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // },
 ];
 const COMPONENT_STOP = [
     {
@@ -156,6 +169,7 @@ const thumbnails = [
     'https://media.tenor.com/tp2px9Gxw5oAAAAd/naruto-dance-anime-dance.gif',
     'https://media.tenor.com/P7QN5kqyiSQAAAAd/aharen-san-aharen-san-anime.gif',
     'https://media.tenor.com/J2IiEb-2zYUAAAAC/aharen-aharen-russian-dance.gif',
+    'https://cdn.donmai.us/original/0e/f9/__neuro_sama_indie_virtual_youtuber_and_1_more_drawn_by_rune_dualhart__0ef91baacc951bd55591930c5bf60ebd.gif',
 ];
 export default async function playyt(interaction) {
     if (!(interaction.channel?.type === ChannelType.GuildText)) {
@@ -675,7 +689,6 @@ export async function stopyt(interaction) {
             });
             messagesQueue.set(guildId, message);
             server.player.pause();
-            server.connection.disconnect();
             server.connection.destroy();
             queue.delete(guildId);
             setTimeout(async () => {
@@ -686,6 +699,44 @@ export async function stopyt(interaction) {
     catch (error) {
         console.log('> stopyt error: ', error);
         channel.send('Error');
+    }
+}
+export async function downloadyt(interaction) {
+    if (!(interaction.channel?.type === ChannelType.GuildText)) {
+        return interaction.reply({
+            content: 'You are not in a channel!',
+            ephemeral: true,
+        });
+    }
+    if (!(interaction.guild instanceof Guild)) {
+        return interaction.reply({
+            content: 'You are not in a guild channel!',
+            ephemeral: true,
+        });
+    }
+    if (!(interaction.member instanceof GuildMember) ||
+        !interaction.member.voice.channel) {
+        return interaction.reply({
+            content: 'You are not in a voice channel!',
+            ephemeral: true,
+        });
+    }
+    const channel = interaction.channel;
+    const guildId = interaction.guild.id;
+    try {
+        const server = queue.get(guildId);
+        if (!server) {
+            interaction.reply('No server found, please run /playyt');
+        }
+        else {
+            await interaction.deferReply();
+            const songInfo = server.songs[0].songInfo;
+            return createMp3(songInfo, interaction);
+        }
+    }
+    catch (error) {
+        console.log('> downloadyt error: ', error);
+        channel.send('> downloadyt error');
     }
 }
 function isUrl(url) {
@@ -717,19 +768,9 @@ function createSong(songInfo) {
                 highWaterMark: 1 << 30,
                 liveBuffer: 20000,
                 quality: 'highestaudio',
-                // dlChunkSize: 1 << 30, //disabling chunking is recommended in discord bot
                 dlChunkSize: 0, //disabling chunking is recommended in discord bot
             });
     };
-    // ytdl(songInfo.videoDetails.video_url, {
-    //   // filter: 'audioonly',
-    //   highWaterMark: 1 << 30,
-    //   liveBuffer: 20000,
-    //   // dlChunkSize: 4096,
-    //   dlChunkSize: 0, //disabling chunking is recommended in discord bot
-    //   quality: 'lowestaudio',
-    //   format: {itag: 94} as videoFormat,
-    // });
     const resource = createAudioResource(stream());
     const song = {
         resource: resource,
@@ -738,6 +779,27 @@ function createSong(songInfo) {
         songInfo: songInfo,
     };
     return song;
+}
+function createMp3(songInfo, interaction) {
+    try {
+        const fileName = `./temp/${songInfo.videoDetails.videoId
+            .replace(/ /g, '_')
+            .replace(/:/g, '_')
+            .replace(/\//g, '')}.mp3`;
+        console.log('Filename: ', fileName);
+        ytdl(songInfo.videoDetails.video_url, {
+            filter: 'audioonly',
+            quality: 'highestaudio',
+        })
+            .pipe(fs.createWriteStream(fileName))
+            .on('close', () => {
+            interaction.followUp({ files: [fileName] });
+        });
+    }
+    catch (error) {
+        console.log('> createMp3 error: ', error);
+        return 'temp.mp3';
+    }
 }
 async function getNextRelatedSong(song) {
     const relatedVideos = song.songInfo.related_videos;

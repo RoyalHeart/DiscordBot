@@ -17,6 +17,7 @@ import {
   resumeyt,
   skipyt,
   stopyt,
+  downloadyt,
 } from './commands/musicyt.js';
 import {ocr} from './commands/ocr.js';
 import quote from './commands/quote.js';
@@ -41,6 +42,7 @@ const commands = {
   pauseyt,
   resumeyt,
   stopyt,
+  downloadyt,
   gpt,
   ocr,
 };
