@@ -207,7 +207,6 @@ export default async function playyt(interaction) {
                     .setFooter({
                     text: `Source: ${server.songs[0].url}`,
                 });
-                console.log(server.songs[0].songInfo.videoDetails.thumbnails);
                 connection.subscribe(player);
                 player.play(song.resource);
                 var newMessage = {
@@ -277,10 +276,8 @@ export default async function playyt(interaction) {
                         text: `Source: ${server.songs[0].url}`,
                     })
                         .setFields(oldEmbed.fields);
-                    // await channel.send({
-                    //   content: `> Playing related song **${song.title}**`,
-                    // });
-                    message = await message.edit({
+                    message.delete();
+                    message = await channel.send({
                         content: `${message.content}\n> Playing related song **${song.title}**`,
                         embeds: [embed],
                         components: COMPONENT_PLAYING,
@@ -311,7 +308,7 @@ export default async function playyt(interaction) {
     }
 }
 export async function addyt(interaction) {
-    if (!(interaction.channel.type === ChannelType.GuildText)) {
+    if (!(interaction.channel?.type === ChannelType.GuildText)) {
         return interaction.reply({
             content: 'You are not in a channel!',
             ephemeral: true,
@@ -330,6 +327,7 @@ export async function addyt(interaction) {
             ephemeral: true,
         });
     }
+    const channel = interaction.channel;
     try {
         await interaction.deferReply();
         const guildId = interaction.guild.id;
@@ -346,7 +344,8 @@ export async function addyt(interaction) {
             server.songs.push(song);
             var message = messagesQueue.get(guildId);
             let embed = message.embeds[0];
-            message = await message.edit({
+            message.delete();
+            message = await channel.send({
                 content: `${message.content}\n> Add **${song.title}** to queue`,
                 embeds: [embed],
                 components: COMPONENT_PLAYING,
@@ -362,7 +361,7 @@ export async function addyt(interaction) {
     }
 }
 export async function loopyt(interaction) {
-    if (!(interaction.channel.type === ChannelType.GuildText)) {
+    if (!(interaction.channel?.type === ChannelType.GuildText)) {
         return interaction.reply({
             content: 'You are not in a channel!',
             ephemeral: true,
@@ -423,60 +422,71 @@ export async function skipyt(interaction) {
     const server = queue.get(guildId);
     const song = server.songs.shift();
     const nextSong = server.songs[0];
-    if (nextSong) {
-        var message = messagesQueue.get(guildId);
-        var oldEmbed = message.embeds[0];
-        var embed = new EmbedBuilder()
-            .setColor(oldEmbed.color)
-            .setAuthor(oldEmbed.author)
-            .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
-            .setTitle(nextSong.title)
-            .setURL(nextSong.url)
-            .setImage(nextSong.songInfo.videoDetails.thumbnails.pop().url)
-            .setTimestamp()
-            .setFooter({
-            text: `Source: ${server.songs[0].url}`,
-        })
-            .setFields(oldEmbed.fields);
-        message = await message.edit({
-            content: `${message.content}`,
-            embeds: [embed],
-            components: COMPONENT_PLAYING,
-        });
-        messagesQueue.set(guildId, message);
-        return server.player.play(nextSong.resource);
+    if (!server) {
+        interaction.reply({ content: 'Please run /playyt first' });
     }
     else {
-        if (song) {
-            // server!.player.play(song.resource);
-            const nextSong = await getNextRelatedSong(song);
-            server.songs.push(nextSong);
-            var message = messagesQueue.get(guildId);
-            var oldEmbed = message.embeds[0];
-            var embed = new EmbedBuilder()
-                .setColor(oldEmbed.color)
-                .setAuthor(oldEmbed.author)
-                .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
-                .setTitle(nextSong.title)
-                .setURL(nextSong.url)
-                .setImage(nextSong.songInfo.videoDetails.thumbnails.pop().url)
-                .setTimestamp()
-                .setFooter({
-                text: `Source: ${server.songs[0].url}`,
-            })
-                .setFields(oldEmbed.fields);
-            message = await message.edit({
-                content: `${message.content}\n> Skip to next related song **${nextSong.title}**`,
-                embeds: [embed],
-                components: COMPONENT_PLAYING,
-            });
-            messagesQueue.set(guildId, message);
-            server.player.play(nextSong.resource);
+        try {
+            if (nextSong) {
+                var message = messagesQueue.get(guildId);
+                var oldEmbed = message.embeds[0];
+                var embed = new EmbedBuilder()
+                    .setColor(oldEmbed.color)
+                    .setAuthor(oldEmbed.author)
+                    .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
+                    .setTitle(nextSong.title)
+                    .setURL(nextSong.url)
+                    .setImage(nextSong.songInfo.videoDetails.thumbnails.pop().url)
+                    .setTimestamp()
+                    .setFooter({
+                    text: `Source: ${server.songs[0].url}`,
+                })
+                    .setFields(oldEmbed.fields);
+                message.delete();
+                message = await channel.send({
+                    content: `${message.content}`,
+                    embeds: [embed],
+                    components: COMPONENT_PLAYING,
+                });
+                messagesQueue.set(guildId, message);
+                return server.player.play(nextSong.resource);
+            }
+            else {
+                if (song) {
+                    const nextSong = await getNextRelatedSong(song);
+                    server.songs.push(nextSong);
+                    var message = messagesQueue.get(guildId);
+                    var oldEmbed = message.embeds[0];
+                    var embed = new EmbedBuilder()
+                        .setColor(oldEmbed.color)
+                        .setAuthor(oldEmbed.author)
+                        .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
+                        .setTitle(nextSong.title)
+                        .setURL(nextSong.url)
+                        .setImage(nextSong.songInfo.videoDetails.thumbnails.pop().url)
+                        .setTimestamp()
+                        .setFooter({
+                        text: `Source: ${server.songs[0].url}`,
+                    })
+                        .setFields(oldEmbed.fields);
+                    message.delete();
+                    message = await channel.send({
+                        content: `${message.content}\n> Skip to next related song **${nextSong.title}**`,
+                        embeds: [embed],
+                        components: COMPONENT_PLAYING,
+                    });
+                    messagesQueue.set(guildId, message);
+                    server.player.play(nextSong.resource);
+                }
+                else {
+                    channel.send({
+                        content: `> No related song`,
+                    });
+                }
+            }
         }
-        else {
-            channel.send({
-                content: `> No related song`,
-            });
+        catch (error) {
+            console.log('> skipyt error: ', error);
         }
     }
 }
@@ -505,30 +515,22 @@ export async function pauseyt(interaction) {
         interaction.reply({ content: `> Pausing` });
         const guildId = interaction.guild.id;
         const server = queue.get(guildId);
-        const user = interaction.member.user;
-        const userId = user.id;
-        const userImageUrl = `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}`;
-        const userName = user.username;
         if (!server) {
             return interaction.reply('Please run /playyt first');
         }
         else {
+            var message = messagesQueue.get(guildId);
+            var oldEmbed = message.embeds[0];
             let embed = new EmbedBuilder()
                 .setColor(0xe76680)
-                .setAuthor({
-                name: userName,
-                iconURL: userImageUrl,
-                url: `https://discord.com/users/${userId}`,
-            })
-                .setTitle(server.songs[0].title)
-                .setURL(server.songs[0].url)
-                .setImage(server.songs[0].songInfo.videoDetails.thumbnails.pop().url)
+                .setAuthor(oldEmbed.author)
+                .setTitle(oldEmbed.title)
+                .setURL(oldEmbed.url)
+                .setImage(oldEmbed.image.url)
                 .setTimestamp()
-                .setFooter({
-                text: `Source: ${server.songs[0].url}`,
-            });
-            var message = messagesQueue.get(guildId);
-            message = await message.edit({
+                .setFooter(oldEmbed.footer);
+            message.delete();
+            message = await channel.send({
                 content: `${message.content}`,
                 embeds: [embed],
                 components: COMPONENT_PAUSE,
@@ -545,7 +547,7 @@ export async function pauseyt(interaction) {
         channel.send(`Error`);
     }
 }
-export function resumeyt(interaction) {
+export async function resumeyt(interaction) {
     if (!(interaction.channel?.type === ChannelType.GuildText)) {
         return interaction.reply({
             content: 'You are not in a channel!',
@@ -578,29 +580,23 @@ export function resumeyt(interaction) {
             return interaction.reply('Please run /playyt first');
         }
         else {
-            let embed = new EmbedBuilder()
-                .setColor(0xe76680)
-                .setAuthor({
-                name: userName,
-                iconURL: userImageUrl,
-                url: `https://discord.com/users/${userId}`,
-            })
-                // .setDescription()
-                .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
-                .setTitle(server.songs[0].title)
-                .setURL(server.songs[0].url)
-                .setImage(server.songs[0].songInfo.videoDetails.thumbnails.pop().url)
-                .setTimestamp()
-                .setFooter({
-                text: `Source: ${server.songs[0].url}`,
-            });
             var message = messagesQueue.get(guildId);
-            message.embeds.at(0)?.fields.push({ name: 'name', value: '' });
-            message.edit({
-                content: `> Playing`,
+            var oldEmbed = message.embeds[0];
+            var embed = new EmbedBuilder()
+                .setColor(oldEmbed.color)
+                .setAuthor(oldEmbed.author)
+                .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
+                .setTitle(oldEmbed.title)
+                .setURL(oldEmbed.url)
+                .setImage(oldEmbed.image.url)
+                .setTimestamp()
+                .setFooter(oldEmbed.footer);
+            message = await message.edit({
+                content: `${message.content}`,
                 embeds: [embed],
                 components: COMPONENT_PLAYING,
             });
+            messagesQueue.set(guildId, message);
         }
         server.player.unpause();
         setTimeout(async () => {
@@ -643,7 +639,8 @@ export async function stopyt(interaction) {
         else {
             var message = messagesQueue.get(guildId);
             let embed = message.embeds[0];
-            message = await message.edit({
+            message.delete();
+            message = await channel.send({
                 content: `${message.content}`,
                 embeds: [embed],
                 components: COMPONENT_STOP,
