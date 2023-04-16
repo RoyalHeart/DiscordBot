@@ -20,7 +20,7 @@ export default async function gpt(interaction: ChatInputCommandInteraction) {
     content: 'ChatGPT is thinking...',
   });
   interaction
-    .followUp({content: `'ChatGPT: ' + ${await content}`})
+    .followUp({content: `ChatGPT: ${await content}`})
     .then(() => message.delete());
 }
 
