@@ -12,7 +12,7 @@ export default async function gpt(interaction) {
         content: 'ChatGPT is thinking...',
     });
     interaction
-        .followUp({ content: `'ChatGPT: ' + ${await content}` })
+        .followUp({ content: `ChatGPT: ${await content}` })
         .then(() => message.delete());
 }
 async function getChatGPTResponse(query) {
