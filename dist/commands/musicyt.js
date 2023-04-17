@@ -130,6 +130,11 @@ const thumbnails = [
     'https://cdn.donmai.us/original/0e/f9/__neuro_sama_indie_virtual_youtuber_and_1_more_drawn_by_rune_dualhart__0ef91baacc951bd55591930c5bf60ebd.gif',
     'https://media.tenor.com/L6Q_AncviC4AAAAC/dj-chubby.gif',
     'https://i.pinimg.com/originals/eb/2a/d1/eb2ad1c402d4c7d5755e88891a404018.gif',
+    'https://media.tenor.com/YvXB33i2YiMAAAAd/nakano-nino-idol.gif',
+    'https://media.tenor.com/igoHeWItt8oAAAAd/shujinkou-bocchi-the-rock.gif',
+    'https://media.tenor.com/1rkyTODR2qQAAAAj/rikka-takanashi-takanashi-rikka.gif',
+    'https://media.tenor.com/ojD7kYfG7FsAAAAi/marin-marin-kitagawa.gif',
+    'https://images.payhip.com/o_1fvr44uu51ga9n2lonk1bikrg8m.gif',
 ];
 export default async function playyt(interaction) {
     if (!(interaction.channel?.type === ChannelType.GuildText)) {
@@ -151,6 +156,7 @@ export default async function playyt(interaction) {
             ephemeral: true,
         });
     }
+    await interaction.deferReply();
     const channel = interaction.channel;
     var server;
     var song;
@@ -162,7 +168,6 @@ export default async function playyt(interaction) {
         const userImageUrl = `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}`;
         const userName = user.username;
         if (!queue.get(guildId)) {
-            await interaction.deferReply();
             const query = interaction.options.get('query').value;
             console.log('> Query:', query);
             const url = await getUrlFromQuery(query);
@@ -170,7 +175,7 @@ export default async function playyt(interaction) {
             song = createSong(songInfo);
             const player = createAudioPlayer({
                 behaviors: {
-                    maxMissedFrames: 10,
+                    maxMissedFrames: 20,
                 },
             });
             try {
@@ -288,12 +293,29 @@ export default async function playyt(interaction) {
                 }
                 else {
                     song = server.songs[0];
-                    console.log('> Song url:', song.url);
-                    console.log('> Next song title' + song.title);
                     if (song) {
-                        await channel.send({
-                            content: `> Playing **${song.title}**`,
+                        console.log('> Song url:', song.url);
+                        var message = messagesQueue.get(guildId);
+                        var oldEmbed = message.embeds[0];
+                        var embed = new EmbedBuilder()
+                            .setColor(oldEmbed.color)
+                            .setAuthor(oldEmbed.author)
+                            .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
+                            .setTitle(song.title)
+                            .setURL(song.url)
+                            .setImage(song.songInfo.videoDetails.thumbnails.pop().url)
+                            .setTimestamp()
+                            .setFooter({
+                            text: `Source: ${server.songs[0].url}`,
+                        })
+                            .setFields(oldEmbed.fields);
+                        message.delete();
+                        message = await channel.send({
+                            content: `${message.content}\n> Playing related song **${song.title}**`,
+                            embeds: [embed],
+                            components: COMPONENT_PLAYING,
                         });
+                        messagesQueue.set(guildId, message);
                         server.player.play(song.resource);
                     }
                 }

@@ -46,7 +46,7 @@ async function getOcrText(imageUrl: string, language: string): Promise<string> {
     const response = await axios.get(ocrUrl);
     const text = response.data.ParsedResults[0].ParsedText as string;
     const pdfLink = response.data.SearchablePDFURL;
-    const result = `Text: ${text}\nPDF link: ${pdfLink}`;
+    const result = `Text:\n${text}\nPDF link: ${pdfLink}`;
     return result;
   } catch (error) {
     console.log('> error:', error);
