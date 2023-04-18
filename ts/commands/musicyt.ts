@@ -163,6 +163,8 @@ const thumbnails = [
   'https://media.tenor.com/1rkyTODR2qQAAAAj/rikka-takanashi-takanashi-rikka.gif',
   'https://media.tenor.com/ojD7kYfG7FsAAAAi/marin-marin-kitagawa.gif',
   'https://images.payhip.com/o_1fvr44uu51ga9n2lonk1bikrg8m.gif',
+  'https://media.tenor.com/DBqXXNQkF28AAAAd/komi-san.gif',
+  '',
 ];
 
 export default async function playyt(interaction: ChatInputCommandInteraction) {
@@ -238,6 +240,20 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
           .setThumbnail(
             thumbnails[Math.floor(Math.random() * thumbnails.length)]
           )
+          .setFields([
+            {
+              name: 'Length',
+              value: song.songInfo.videoDetails.lengthSeconds,
+            },
+            {
+              name: 'View',
+              value: song.songInfo.videoDetails.viewCount,
+            },
+            {
+              name: 'Likes',
+              value: song.songInfo.videoDetails.likes!.toString(),
+            },
+          ])
           .setTitle(song.title)
           .setURL(song.url)
           .setImage(song.songInfo.videoDetails.thumbnails.pop()!.url)
@@ -258,22 +274,26 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
         console.log('> playyt error:', error);
         queue.delete(guildId);
         player.stop();
-        return interaction.channel!.send(error);
+        return channel.send(error);
       }
     } else {
       server = queue.get(guildId)!;
-      var modal = new ModalBuilder()
-        .setTitle('Add song URL or name')
-        .setCustomId('addyt')
-        .setComponents(
-          new ActionRowBuilder<TextInputBuilder>().setComponents(
-            new TextInputBuilder()
-              .setLabel('Song query')
-              .setCustomId('query')
-              .setStyle(1)
-          )
-        );
-      return interaction.showModal(modal);
+      try {
+        var modal = new ModalBuilder()
+          .setTitle('Add song URL or name')
+          .setCustomId('addyt')
+          .setComponents(
+            new ActionRowBuilder<TextInputBuilder>().setComponents(
+              new TextInputBuilder()
+                .setLabel('Song title or link')
+                .setCustomId('query')
+                .setStyle(1)
+            )
+          );
+        return interaction.showModal(modal);
+      } catch (error) {
+        console.log('> playyt error', error);
+      }
     }
 
     server.player.on(AudioPlayerStatus.Buffering, async (e: any) => {
