@@ -199,6 +199,8 @@ export default async function playyt(interaction) {
                 };
                 server = queueContruct;
                 queue.set(guildId, queueContruct);
+                console.log('info', song.songInfo);
+                console.log('detail', song.songInfo.videoDetails);
                 var embed = new EmbedBuilder()
                     .setColor(0xe76680)
                     .setAuthor({
@@ -207,22 +209,20 @@ export default async function playyt(interaction) {
                     url: `https://discord.com/users/${userId}`,
                 })
                     .setThumbnail(thumbnails[Math.floor(Math.random() * thumbnails.length)])
+                    .setTitle(song.title)
+                    .setURL(song.url)
                     .setFields([
                     {
                         name: 'Length',
-                        value: song.songInfo.videoDetails.lengthSeconds,
+                        value: `${song.songInfo.videoDetails.lengthSeconds} seconds`,
+                        inline: true,
                     },
                     {
                         name: 'View',
                         value: song.songInfo.videoDetails.viewCount,
-                    },
-                    {
-                        name: 'Likes',
-                        value: song.songInfo.videoDetails.likes.toString(),
+                        inline: true,
                     },
                 ])
-                    .setTitle(song.title)
-                    .setURL(song.url)
                     .setImage(song.songInfo.videoDetails.thumbnails.pop().url)
                     .setTimestamp()
                     .setFooter({
@@ -297,11 +297,22 @@ export default async function playyt(interaction) {
                         .setTitle(song.title)
                         .setURL(song.url)
                         .setImage(song.songInfo.videoDetails.thumbnails.pop().url)
+                        .setFields([
+                        {
+                            name: 'Length',
+                            value: `${song.songInfo.videoDetails.lengthSeconds} seconds`,
+                            inline: true,
+                        },
+                        {
+                            name: 'View',
+                            value: song.songInfo.videoDetails.viewCount,
+                            inline: true,
+                        },
+                    ])
                         .setTimestamp()
                         .setFooter({
                         text: `Source: ${server.songs[0].url}`,
-                    })
-                        .setFields(oldEmbed.fields);
+                    });
                     message.delete();
                     message = await channel.send({
                         content: `${message.content}\n> Playing related song **${song.title}**`,
@@ -325,11 +336,22 @@ export default async function playyt(interaction) {
                             .setTitle(song.title)
                             .setURL(song.url)
                             .setImage(song.songInfo.videoDetails.thumbnails.pop().url)
+                            .setFields([
+                            {
+                                name: 'Length',
+                                value: `${song.songInfo.videoDetails.lengthSeconds} seconds`,
+                                inline: true,
+                            },
+                            {
+                                name: 'View',
+                                value: song.songInfo.videoDetails.viewCount,
+                                inline: true,
+                            },
+                        ])
                             .setTimestamp()
                             .setFooter({
                             text: `Source: ${server.songs[0].url}`,
-                        })
-                            .setFields(oldEmbed.fields);
+                        });
                         message.delete();
                         message = await channel.send({
                             content: `${message.content}\n> Playing related song **${song.title}**`,
@@ -480,11 +502,22 @@ export async function skipyt(interaction) {
                     .setTitle(nextSong.title)
                     .setURL(nextSong.url)
                     .setImage(nextSong.songInfo.videoDetails.thumbnails.pop().url)
+                    .setFields([
+                    {
+                        name: 'Length',
+                        value: `${nextSong.songInfo.videoDetails.lengthSeconds} seconds`,
+                        inline: true,
+                    },
+                    {
+                        name: 'View',
+                        value: nextSong.songInfo.videoDetails.viewCount,
+                        inline: true,
+                    },
+                ])
                     .setTimestamp()
                     .setFooter({
                     text: `Source: ${server.songs[0].url}`,
-                })
-                    .setFields(oldEmbed.fields);
+                });
                 message.delete();
                 message = await channel.send({
                     content: `${message.content}`,
@@ -507,11 +540,22 @@ export async function skipyt(interaction) {
                         .setTitle(nextSong.title)
                         .setURL(nextSong.url)
                         .setImage(nextSong.songInfo.videoDetails.thumbnails.pop().url)
+                        .setFields([
+                        {
+                            name: 'Length',
+                            value: `${nextSong.songInfo.videoDetails.lengthSeconds} seconds`,
+                            inline: true,
+                        },
+                        {
+                            name: 'View',
+                            value: nextSong.songInfo.videoDetails.viewCount,
+                            inline: true,
+                        },
+                    ])
                         .setTimestamp()
                         .setFooter({
                         text: `Source: ${server.songs[0].url}`,
-                    })
-                        .setFields(oldEmbed.fields);
+                    });
                     message.delete();
                     message = await channel.send({
                         content: `${message.content}\n> Skip to next related song **${nextSong.title}**`,
@@ -570,6 +614,7 @@ export async function pauseyt(interaction) {
                 .setTitle(oldEmbed.title)
                 .setURL(oldEmbed.url)
                 .setImage(oldEmbed.image.url)
+                .setFields(oldEmbed.fields)
                 .setTimestamp()
                 .setFooter(oldEmbed.footer);
             message.delete();
@@ -632,6 +677,7 @@ export async function resumeyt(interaction) {
                 .setTitle(oldEmbed.title)
                 .setURL(oldEmbed.url)
                 .setImage(oldEmbed.image.url)
+                .setFields(oldEmbed.fields)
                 .setTimestamp()
                 .setFooter(oldEmbed.footer);
             message = await message.edit({
