@@ -158,7 +158,6 @@ export default async function playyt(interaction) {
             ephemeral: true,
         });
     }
-    await interaction.deferReply();
     const channel = interaction.channel;
     var server;
     var song;
@@ -170,6 +169,7 @@ export default async function playyt(interaction) {
         const userImageUrl = `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}`;
         const userName = user.username;
         if (!queue.get(guildId)) {
+            await interaction.deferReply();
             const query = interaction.options.get('query').value;
             console.log('> Query:', query);
             const url = await getUrlFromQuery(query);
