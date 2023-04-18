@@ -199,8 +199,6 @@ export default async function playyt(interaction) {
                 };
                 server = queueContruct;
                 queue.set(guildId, queueContruct);
-                console.log('info', song.songInfo);
-                console.log('detail', song.songInfo.videoDetails);
                 var embed = new EmbedBuilder()
                     .setColor(0xe76680)
                     .setAuthor({
