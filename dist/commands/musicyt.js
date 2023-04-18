@@ -1,4 +1,4 @@
-import { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel, } from '@discordjs/voice';
+import { AudioPlayerStatus, NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel, } from '@discordjs/voice';
 import { ActionRowBuilder, ChannelType, EmbedBuilder, Guild, GuildMember, ModalBuilder, TextInputBuilder, } from 'discord.js';
 import fs from 'fs';
 import ytdl from 'ytdl-core';
@@ -177,7 +177,8 @@ export default async function playyt(interaction) {
             song = createSong(songInfo);
             const player = createAudioPlayer({
                 behaviors: {
-                    maxMissedFrames: 20,
+                    // maxMissedFrames: 20,
+                    noSubscriber: NoSubscriberBehavior.Pause,
                 },
             });
             try {
@@ -420,7 +421,7 @@ export async function addyt(interaction) {
     }
     catch (error) {
         console.log('> addyt error: ', error);
-        interaction.channel.send('Error no server found');
+        interaction.followUp('Error please use the Add button');
     }
 }
 export async function loopyt(interaction) {

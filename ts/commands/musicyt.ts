@@ -2,6 +2,7 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   AudioResource,
+  NoSubscriberBehavior,
   VoiceConnection,
   createAudioPlayer,
   createAudioResource,
@@ -208,7 +209,8 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
       song = createSong(songInfo);
       const player = createAudioPlayer({
         behaviors: {
-          maxMissedFrames: 20,
+          // maxMissedFrames: 20,
+          noSubscriber: NoSubscriberBehavior.Pause,
         },
       });
       try {
@@ -457,7 +459,7 @@ export async function addyt(interaction: ModalSubmitInteraction) {
     }
   } catch (error) {
     console.log('> addyt error: ', error);
-    interaction.channel!.send('Error no server found');
+    interaction.followUp('Error please use the Add button');
   }
 }
 
