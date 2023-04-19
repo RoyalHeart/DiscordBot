@@ -136,7 +136,8 @@ const thumbnails = [
     'https://media.tenor.com/ojD7kYfG7FsAAAAi/marin-marin-kitagawa.gif',
     'https://images.payhip.com/o_1fvr44uu51ga9n2lonk1bikrg8m.gif',
     'https://media.tenor.com/DBqXXNQkF28AAAAd/komi-san.gif',
-    '',
+    'https://media.tenor.com/J01jd-iPvVkAAAAC/reincarnated-as-a-sword-fran.gif',
+    'https://media.tenor.com/4OO1_Mh0DUoAAAAM/sword-isekai-reincarnated-as-a-sword.gif',
 ];
 export default async function playyt(interaction) {
     if (!(interaction.channel?.type === ChannelType.GuildText)) {
