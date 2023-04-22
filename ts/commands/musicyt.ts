@@ -167,6 +167,7 @@ const thumbnails = [
   'https://media.tenor.com/DBqXXNQkF28AAAAd/komi-san.gif',
   'https://media.tenor.com/J01jd-iPvVkAAAAC/reincarnated-as-a-sword-fran.gif',
   'https://media.tenor.com/4OO1_Mh0DUoAAAAM/sword-isekai-reincarnated-as-a-sword.gif',
+  'https://media.tenor.com/85TwJzKqq9gAAAAd/chainsaw-man-dance.gif',
 ];
 
 export default async function playyt(interaction: ChatInputCommandInteraction) {
@@ -393,7 +394,7 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
               });
             message.delete();
             message = await channel.send({
-              content: `${message.content}\n> Playing related song **${song.title}**`,
+              content: `${message.content}`,
               embeds: [embed],
               components: COMPONENT_PLAYING,
             });
