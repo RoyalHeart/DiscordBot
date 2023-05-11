@@ -64,10 +64,9 @@ async function getForecastWeather(location) {
             if (mainWeather === 'Rain') {
                 haveRain = true;
                 const temp = Math.round(forecast.main.temp * 10) / 100;
-                const weather = mainWeather;
                 const description = forecast.weather[0].description;
                 const time = timeConverter(forecast.dt);
-                message += `\n**${temp}°C**, **${weather}**, **${description}** at **${time}**`;
+                message += `\n**${temp}°C**, ${description} at ${time}`;
             }
         }
         if (!haveRain) {

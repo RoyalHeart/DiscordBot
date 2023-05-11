@@ -143,6 +143,7 @@ const yt = {
             type: 10,
             description: 'Number of Youtube videos searched',
             required: false,
+            default: 4,
         },
     ],
 };
