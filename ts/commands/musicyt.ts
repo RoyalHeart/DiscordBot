@@ -354,7 +354,9 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
             });
           message.delete();
           message = await channel.send({
-            content: `${message.content}\n> Playing related song **${song.title}**`,
+            content: `${message.content.substring(
+              message.content.search('\n') + 1
+            )}\n> Related song **${song.title}**`,
             embeds: [embed],
             components: COMPONENT_PLAYING,
           });
@@ -394,7 +396,9 @@ export default async function playyt(interaction: ChatInputCommandInteraction) {
               });
             message.delete();
             message = await channel.send({
-              content: `${message.content}`,
+              content: `${message.content.substring(
+                message.content.search('\n') + 1
+              )}`,
               embeds: [embed],
               components: COMPONENT_PLAYING,
             });
@@ -565,7 +569,9 @@ export async function skipyt(interaction: ChatInputCommandInteraction) {
           });
         message.delete();
         message = await channel.send({
-          content: `${message.content}`,
+          content: `${message.content.substring(
+            message.content.search('\n') + 1
+          )}`,
           embeds: [embed],
           components: COMPONENT_PLAYING,
         });
@@ -604,7 +610,9 @@ export async function skipyt(interaction: ChatInputCommandInteraction) {
             });
           message.delete();
           message = await channel.send({
-            content: `${message.content}\n> Skip to next related song **${nextSong.title}**`,
+            content: `${message.content.substring(
+              message.content.search('\n') + 1
+            )}\n> Skip related song **${nextSong.title}**`,
             embeds: [embed],
             components: COMPONENT_PLAYING,
           });
