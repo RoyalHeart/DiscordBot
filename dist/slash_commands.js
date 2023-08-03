@@ -50,6 +50,10 @@ const weather = {
                     name: 'Ho Chi Minh',
                     value: 'Ho Chi Minh',
                 },
+                {
+                    name: 'Tampere',
+                    value: 'Tampere',
+                },
             ],
         },
         {

@@ -33,30 +33,35 @@ const commands = {
     ocr,
 };
 export default async function interactionHandler(interaction) {
-    if (interaction.isButton()) {
-        console.log(`Button [${interaction.guild?.name}] ${interaction.user.username}: ${interaction.customId}`);
-        if (interaction.customId in commands) {
-            log(`[${interaction.guild?.name}] ${interaction.user.username}`, interaction.customId);
-            const command = interaction.customId;
+    try {
+        if (interaction.isButton()) {
+            console.log(`Button [${interaction.guild?.name}] ${interaction.user.username}: ${interaction.customId}`);
+            if (interaction.customId in commands) {
+                log(`[${interaction.guild?.name}] ${interaction.user.username}`, interaction.customId);
+                const command = interaction.customId;
+                commands[command](interaction);
+            }
+        }
+        else if (interaction.isModalSubmit()) {
+            console.log(`Modal [${interaction.guild?.name}] ${interaction.user.username}: ${interaction.customId}`);
+            if (interaction.customId in commands) {
+                log(`[${interaction.guild?.name}] ${interaction.user.username}`, interaction.customId);
+                const command = interaction.customId;
+                commands[command](interaction);
+            }
+        }
+        else if (!interaction.isChatInputCommand()) {
+            return;
+        }
+        else if (interaction.commandName in commands) {
+            console.log(`Chat [${interaction.guild?.name}] ${interaction.user.username}: ${interaction.commandName}`);
+            log(`[${interaction.guild?.name}] ${interaction.user.username}`, interaction.commandName);
+            const command = interaction.commandName;
             commands[command](interaction);
         }
     }
-    else if (interaction.isModalSubmit()) {
-        console.log(`Modal [${interaction.guild?.name}] ${interaction.user.username}: ${interaction.customId}`);
-        if (interaction.customId in commands) {
-            log(`[${interaction.guild?.name}] ${interaction.user.username}`, interaction.customId);
-            const command = interaction.customId;
-            commands[command](interaction);
-        }
-    }
-    else if (!interaction.isChatInputCommand()) {
-        return;
-    }
-    else if (interaction.commandName in commands) {
-        console.log(`Chat [${interaction.guild?.name}] ${interaction.user.username}: ${interaction.commandName}`);
-        log(`[${interaction.guild?.name}] ${interaction.user.username}`, interaction.commandName);
-        const command = interaction.commandName;
-        commands[command](interaction);
+    catch (err) {
+        console.log('> Interaction', err);
     }
 }
 //# sourceMappingURL=interactions.js.map

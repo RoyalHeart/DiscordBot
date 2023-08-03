@@ -412,7 +412,7 @@ export async function addyt(interaction) {
             let embed = message.embeds[0];
             message.delete();
             message = await channel.send({
-                content: `${message.content}\n> Add **${song.title}** to queue`,
+                content: `${message.content}\n> Add **${song.title}**`,
                 embeds: [embed],
                 components: COMPONENT_PLAYING,
             });

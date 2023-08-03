@@ -46,10 +46,10 @@ async function getCurrentWeather(location: string): Promise<string> {
       })
     ).data;
     console.log(response);
-    const temp = Math.round((response.main['temp'] as number) * 10) / 100;
+    const temp = Math.round((response.main['temp'] as number) - 273.15);
     const weather = response.weather[0]['main'];
     const description = response.weather[0]['description'];
-    const time = timeConverter(response['dt']);
+    const time = timeConverter(response['dt'], response['timezone']);
     const message = `**${location}**, **${temp}°C**, **${weather}**, **${description}** at **${time}**`;
     return message;
   } catch (error) {
@@ -68,14 +68,15 @@ async function getForecastWeather(location: string) {
     ).data;
     var message = `Forecast Rain in ${location}: `;
     var haveRain = false;
+    const timezone = response.city['timezone'];
     for (var index in response.list) {
       let forecast = response.list[index];
       let mainWeather = forecast.weather[0].main;
       if (mainWeather === 'Rain') {
         haveRain = true;
-        const temp = Math.round((forecast.main.temp as number) * 10) / 100;
+        const temp = Math.round((forecast.main.temp as number) - 273.15);
         const description = forecast.weather[0].description;
-        const time = timeConverter(forecast.dt);
+        const time = timeConverter(forecast.dt, timezone);
         message += `\n**${temp}°C**, ${description} at ${time}`;
       }
     }
@@ -89,8 +90,9 @@ async function getForecastWeather(location: string) {
   }
 }
 
-function timeConverter(UNIX_timestamp: number) {
-  var date = new Date(UNIX_timestamp * 1000);
+function timeConverter(UNIX_timestamp: number, timezone: number) {
+  var date = new Date((UNIX_timestamp + timezone - 25200) * 1000);
+
   var months = [
     'Jan',
     'Feb',
