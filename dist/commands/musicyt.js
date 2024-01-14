@@ -31,6 +31,17 @@ const COMPONENT_PLAYING = [
                 style: 4,
                 custom_id: 'stopyt',
             },
+        ],
+    },
+    {
+        type: 1,
+        components: [
+            {
+                type: 2,
+                label: 'Loop',
+                style: 3,
+                custom_id: 'loopyt',
+            },
             {
                 type: 2,
                 label: 'Download',
@@ -67,12 +78,6 @@ const COMPONENT_PAUSE = [
                 label: 'Stop',
                 style: 4,
                 custom_id: 'stopyt',
-            },
-            {
-                type: 2,
-                label: 'Download',
-                style: 1,
-                custom_id: 'downloadyt',
             },
         ],
     },

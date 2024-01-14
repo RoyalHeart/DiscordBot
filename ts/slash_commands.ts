@@ -57,8 +57,16 @@ const weather = {
           value: 'Ho Chi Minh',
         },
         {
+          name: 'New York',
+          value: 'New York',
+        },
+        {
           name: 'Tampere',
           value: 'Tampere',
+        },
+        {
+          name: 'Seoul',
+          value: 'Seoul',
         },
       ],
     },
@@ -121,6 +129,19 @@ const play = {
       name: 'query',
       type: 3,
       description: 'The URL of song you want to play',
+      required: true,
+    },
+  ],
+};
+const ask = {
+  name: 'ask',
+  description: 'Ask anything to self hosted Llama 2 model',
+  type: 1,
+  options: [
+    {
+      name: 'query',
+      type: 3,
+      description: 'Message to Llama',
       required: true,
     },
   ],
@@ -303,4 +324,5 @@ export async function createSlashCommand() {
   // await post(ocr);
   // await post(weather);
   // await post(downloadyt);
+  // await post(ask);
 }

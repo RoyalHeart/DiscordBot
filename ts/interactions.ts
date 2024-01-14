@@ -19,6 +19,7 @@ import quote from './commands/quote.js';
 import {weather} from './commands/weather.js';
 import {yt} from './commands/yt.js';
 import {log} from './mongodb.js';
+import ask from './commands/llama.js';
 const commands = {
   help,
   hi,
@@ -36,6 +37,7 @@ const commands = {
   stopyt,
   downloadyt,
   gpt,
+  ask,
   ocr,
 };
 export default async function interactionHandler(

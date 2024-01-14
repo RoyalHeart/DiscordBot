@@ -20,7 +20,8 @@ export async function ocr(interaction: ChatInputCommandInteraction) {
     console.log('> error: ', error);
   }
   console.log(image);
-  const imageUrl = image?.attachment?.url as string;
+  var url = image?.attachment?.url as string;
+  const imageUrl = url.substring(0, url.indexOf('?')) as string; // remove extra path variable
   const text = await getOcrText(imageUrl, language);
   interaction.editReply(text);
 }

@@ -19,7 +19,8 @@ export async function ocr(interaction) {
         console.log('> error: ', error);
     }
     console.log(image);
-    const imageUrl = image?.attachment?.url;
+    var url = image?.attachment?.url;
+    const imageUrl = url.substring(0, url.indexOf('?')); // remove extra path variable
     const text = await getOcrText(imageUrl, language);
     interaction.editReply(text);
 }
